@@ -1,4 +1,3 @@
-```markdown
 # Wildfire MARL Simulation
 
 A high-performance C++14 multi-agent reinforcement learning (MARL) environment and cellular automata simulation for training autonomous drone swarms to suppress wildfires, featuring native Raylib visualization.
