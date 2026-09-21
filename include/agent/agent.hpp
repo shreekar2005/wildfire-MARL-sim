@@ -16,7 +16,8 @@ class Agent {
         static const float circleRadius;
         static int numAgents;
         static int nextAgentId;
-        static std::unordered_map<int, Agent*> id_to_agents;
+        static std::unordered_map<int, Agent*> id_to_agent;
+        static std::unordered_map<int, Agent*> id_to_thread;
 
         Agent(Vector2 _pos = {10, 10}, Color _color = RED);
         
