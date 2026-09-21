@@ -13,11 +13,13 @@ class Agent {
         Color color;
         bool haveWater;
 
+        bool shouldStop;
+
         static const float circleRadius;
         static int numAgents;
         static int nextAgentId;
         static std::unordered_map<int, Agent*> id_to_agent;
-        static std::unordered_map<int, Agent*> id_to_thread;
+        static std::unordered_map<int, std::thread*> id_to_thread;
 
         Agent(Vector2 _pos = {10, 10}, Color _color = RED);
         

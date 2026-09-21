@@ -8,13 +8,13 @@
 
 #include <agent/agent.hpp>
 #include <simulation/simulation.hpp>
+#include <environment/grass.hpp>
 
 
 int main(void)
 {
-
     InitWindow(screenWidth, screenHeight, "wildfire_marl_simulation");
-    SetTargetFPS(60);
+    SetTargetFPS(610);
     
     Agent::id_to_agent.reserve(1000);
     Agent::id_to_thread.reserve(1000);
@@ -28,7 +28,6 @@ int main(void)
         if (IsKeyPressed(KEY_C)) {
             mousePos = GetMousePosition();
             new Agent(mousePos);
-            TraceLog(LOG_INFO, "Agent Created");
         }
 
         if (IsMouseButtonPressed(0)) {
@@ -62,12 +61,26 @@ int main(void)
         
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            // Agent threads will draw the agents
-            DrawText(TextFormat("FPS: %i", GetFPS()), 10, 10, 20, DARKGRAY);
+
+            drawGrass();
+
+            for(auto &it : Agent::id_to_agent) {
+                int id = it.first;
+                Agent* agent= it.second;
+                float dt = GetFrameTime();
+                
+                if (agent->id == selected_agent_id) {
+                    DrawCircleV(agent->pos, Agent::circleRadius, BLUE);
+                } else {
+                    DrawCircleV(agent->pos, Agent::circleRadius, agent->color);
+                }
+                DrawCircleLines(agent->pos.x, agent->pos.y, Agent::circleRadius, BLACK);
+            }
+
+            DrawFPS(10, 10);
         EndDrawing();
     }
     Agent::destructAll();
-
     CloseWindow();
     return 0;
 }
