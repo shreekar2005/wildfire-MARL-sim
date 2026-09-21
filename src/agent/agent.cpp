@@ -11,8 +11,6 @@
 
 static void agentTask(Agent* agent) {
     auto lastTime = std::chrono::high_resolution_clock::now();
-
-
     
     while(!agent->shouldStop) {
         auto currentTime = std::chrono::high_resolution_clock::now();
@@ -43,7 +41,6 @@ int Agent::numAgents = 0;
 int Agent::nextAgentId = 0;
 std::unordered_map<int, Agent*> Agent::id_to_agent;
 std::unordered_map<int, std::thread*> Agent::id_to_thread;
-
 
 Agent::Agent(Vector2 _pos, Color _color) {
     id = nextAgentId++;
