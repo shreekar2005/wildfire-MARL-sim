@@ -1,8 +1,6 @@
 #pragma once
-
-#include <raylib.h>
-#include <thread>
-#include <unordered_map>
+#include<raylib.h>
+#include<unordered_map>
 
 class Agent {
     private:
@@ -35,3 +33,4 @@ class Agent {
 
         static void destructAll();
 };
+

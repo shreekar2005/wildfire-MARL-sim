@@ -5,7 +5,7 @@
 
 #include "raylib.h"
 #include "raymath.h"
-
+#include <environment/environment.hpp>
 #include <agent/agent.hpp>
 #include <simulation/simulation.hpp>
 #include <environment/environment.hpp>
@@ -59,12 +59,12 @@ int main(void)
                 else agent->acc_dir.x = 0;
             }
         }
+		env.drawEnvironment();
         
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            sim::drawGrass();
-            sim::drawAgents();
-            DrawFPS(10, 10);
+            // Agent threads will draw the agents
+            DrawText(TextFormat("FPS: %i", GetFPS()), 10, 10, 20, DARKGRAY);
         EndDrawing();
     }
     Agent::destructAll();
