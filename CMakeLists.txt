@@ -23,5 +23,10 @@ target_link_libraries(wildfire_marl_sim PRIVATE
     marl_train_lib
     marl_test_lib
     raylib
-    pthread
+    pthread 
+    GL 
+    m 
+    dl 
+    rt 
+    X11
 )

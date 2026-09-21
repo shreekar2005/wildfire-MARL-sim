@@ -10,11 +10,11 @@ A high-performance C++14 multi-agent reinforcement learning (MARL) environment a
 
 The system uses a Decentralized Partially Observable Markov Decision Process (Dec-POMDP) where drone agents work together to contain wildfires.
 
-* **Cellular Automata Engine:** Simulates 2D terrain, fuel dynamics, and fire spread based on wind and combustion states.
-* **Autonomous Swarm Agents:** Drones operate with localized fields of view (FOV) while tracking battery life and water payload.
-* **Shared Memory:** Uses thread-safe shared memory protected by read-write locks (`std::shared_timed_mutex`) for fast coordination without network delays.
-* **Multi-Threaded Execution:** Each drone agent runs on an independent C++14 `std::thread` to simulate real-world asynchronous decisions.
-* **Native Visualization:** Hardware-accelerated 2D graphics and metrics overlay using Raylib and Dear ImGui.
+* **Cellular Automata Engine:** Simulates procedurally generated 2D terrain, fuel dynamics, and fire spread based on grass type flammability, operating on a single thread with zero wind influence and interactive manual ignition.
+* **Autonomous Swarm Agents:** Drones operate with localized fields of view (FOV), tracking state variables including position, velocity, acceleration, and water payload.
+* **Redis Blackboard:** Uses Redis channels and key-value datastores as the central IPC broker. Agents publish perception and state updates via PUB/SUB to a standalone RL-server, enabling decoupled process communication.
+* **Multi-Threaded Execution:** Each drone agent runs on an independent C++ thread to execute asynchronous polling and decision loops.
+* **Native Visualization:** Hardware-accelerated 2D graphical rendering and real-time debugging dashboard using Raylib and Dear ImGui.
 
 ---
 
