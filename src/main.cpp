@@ -1,68 +1,11 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+
 #include "raylib.h"
 #include "raymath.h"
 
-class Agent {
-    public:
-        int id;
-        Vector2 pos;
-        Vector2 vel;
-        Vector2 acc;
-        Color color;
-        bool haveWater;
-
-        static const float circleRadius;
-        static int numAgents;
-        static int nextAgentId;
-        static std::unordered_map<int, Agent*> id_to_agents;
-
-        Agent(Vector2 _pos = {10, 10}, Color _color = RED) {
-            id = nextAgentId++;
-            id_to_agents[id] = this;
-            pos = _pos;
-            color = _color;
-            vel = {0, 0};
-            acc = {0, 0};
-            haveWater = false;
-            numAgents++;
-        }
-        
-        Agent(const Agent& other) {
-            id = nextAgentId++;
-            id_to_agents[id] = this;
-            pos = other.pos;
-            vel = other.vel;
-            acc = other.acc;
-            color = other.color;
-            haveWater = other.haveWater;
-            numAgents++; 
-        }
-        
-        ~Agent() {
-            numAgents--;
-            id_to_agents.erase(this->id);
-        }
-
-        void updateVel(float time) {
-            vel.x += time * acc.x;
-            vel.y += time * acc.y;
-        }
-
-        void updatePos(float time) {
-            pos.x += time * vel.x;
-            pos.y += time * vel.y;
-            
-            vel.x *= 0.95f;
-            vel.y *= 0.95f;
-        }
-};
-
-const float Agent::circleRadius = 15.0f;
-int Agent::numAgents = 0;
-int Agent::nextAgentId = 0;
-std::unordered_map<int, Agent*> Agent::id_to_agents;
+#include <agent/agent.hpp>
 
 int main(void)
 {
@@ -72,11 +15,9 @@ int main(void)
     InitWindow(screenWidth, screenHeight, "wildfire_marl_simulation");
     SetTargetFPS(60);
     
-    Vector2 mousePos;
-    std::vector<Agent*> agents;
-    
-    agents.reserve(1000);
     Agent::id_to_agents.reserve(1000);
+    
+    Vector2 mousePos;
 
     int selected_agent_id = -1; 
 
@@ -84,17 +25,19 @@ int main(void)
     {
         if (IsKeyPressed(KEY_C)) {
             mousePos = GetMousePosition();
-            agents.push_back(new Agent(mousePos));
+            new Agent(mousePos);
             TraceLog(LOG_INFO, "Agent Created");
         }
 
         if (IsMouseButtonPressed(0)) {
             mousePos = GetMousePosition();
             bool found = false;
-            for (auto* agent : agents) {
+            for(auto &it : Agent::id_to_agents) {
+                int id = it.first;
+                Agent* agent= it.second;
                 float distAgentMouse = Vector2Distance(mousePos, agent->pos);
                 if (distAgentMouse <= Agent::circleRadius) {
-                    selected_agent_id = agent->id;
+                    selected_agent_id = id;
                     found = true;
                     break;
                 }
@@ -106,19 +49,22 @@ int main(void)
             auto it = Agent::id_to_agents.find(selected_agent_id);
             if (it != Agent::id_to_agents.end()) {
                 Agent* agent = it->second;
-                if (IsKeyDown(KEY_W)) agent->vel.y -= 50;
-                if (IsKeyDown(KEY_S)) agent->vel.y += 50;
-                if (IsKeyDown(KEY_A)) agent->vel.x -= 50;
-                if (IsKeyDown(KEY_D)) agent->vel.x += 50;
+                if (IsKeyDown(KEY_W)) agent->acc.y = -1000;
+                else if (IsKeyDown(KEY_S)) agent->acc.y = 1000;
+                else agent->acc.y = 0;
+                if (IsKeyDown(KEY_A)) agent->acc.x = -1000;
+                else if (IsKeyDown(KEY_D)) agent->acc.x = 1000;
+                else agent->acc.x = 0;
             }
         }
         
         BeginDrawing();
             ClearBackground(RAYWHITE);
 
-            for (auto* agent : agents) {
+            for(auto &it : Agent::id_to_agents) {
+                int id = it.first;
+                Agent* agent= it.second;
                 float dt = GetFrameTime();
-
                 agent->updateVel(dt);
                 agent->updatePos(dt);
 
@@ -141,11 +87,7 @@ int main(void)
             DrawText(TextFormat("FPS: %i", GetFPS()), 10, 10, 20, DARKGRAY);
         EndDrawing();
     }
-
-    for (auto* agent : agents) {
-        delete agent;
-    }
-    agents.clear();
+    Agent::destructAll();
 
     CloseWindow();
     return 0;
