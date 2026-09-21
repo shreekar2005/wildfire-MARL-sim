@@ -1,10 +1,12 @@
-#include<raylib.h>
-#include<thread>
-#include<chrono>
+#include <raylib.h>
+#include <raymath.h>
+#include <thread>
+#include <chrono>
 #include <mutex>
+#include <cmath>
 
-#include<agent/agent.hpp>
-#include<simulation/simulation.hpp>
+#include <agent/agent.hpp>
+#include <simulation/simulation.hpp>
 
 
 static void agentTask(Agent* agent) {
@@ -29,10 +31,11 @@ static void agentTask(Agent* agent) {
             agent->pos.y = (agent->pos.y < 0) ? 0.0f : (float)screenHeight;
         }
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
 
+const float Agent::acc_mag = 1000;
 const float Agent::circleRadius = 15.0f;
 int Agent::numAgents = 0;
 int Agent::nextAgentId = 0;
@@ -45,7 +48,7 @@ Agent::Agent(Vector2 _pos, Color _color) {
     pos = _pos;
     color = _color;
     vel = {0, 0};
-    acc = {0, 0};
+    acc_dir = {0, 0};
     haveWater = false;
     numAgents++;
     shouldStop=false;
@@ -58,7 +61,7 @@ Agent::Agent(const Agent& other) {
     id_to_agent[id] = this;
     pos = other.pos;
     vel = other.vel;
-    acc = other.acc;
+    acc_dir = other.acc_dir;
     color = other.color;
     haveWater = other.haveWater;
     numAgents++; 
@@ -76,16 +79,19 @@ Agent::~Agent() {
 }
 
 void Agent::updateVel(float time) {
-    vel.x += time * acc.x;
-    vel.y += time * acc.y;
+    float acc_dir_mag = Vector2Length(acc_dir);
+    if(acc_dir_mag == 0) return;
+    vel.x += time * (acc_dir.x / acc_dir_mag) * acc_mag;
+    vel.y += time * (acc_dir.y / acc_dir_mag) * acc_mag;
 }
 
 void Agent::updatePos(float time) {
     pos.x += time * vel.x;
     pos.y += time * vel.y;
     
-    vel.x *= 0.95f;
-    vel.y *= 0.95f;
+    float damping = std::pow(0.95f, time * 60.0f);
+    vel.x *= damping;
+    vel.y *= damping;
 }
 
 void Agent::destructAll() {

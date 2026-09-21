@@ -14,7 +14,7 @@
 int main(void)
 {
     InitWindow(screenWidth, screenHeight, "wildfire_marl_simulation");
-    SetTargetFPS(610);
+    SetTargetFPS(300);
     
     Agent::id_to_agent.reserve(1000);
     Agent::id_to_thread.reserve(1000);
@@ -50,12 +50,12 @@ int main(void)
             auto it = Agent::id_to_agent.find(selected_agent_id);
             if (it != Agent::id_to_agent.end()) {
                 Agent* agent = it->second;
-                if (IsKeyDown(KEY_W)) agent->acc.y = -1000;
-                else if (IsKeyDown(KEY_S)) agent->acc.y = 1000;
-                else agent->acc.y = 0;
-                if (IsKeyDown(KEY_A)) agent->acc.x = -1000;
-                else if (IsKeyDown(KEY_D)) agent->acc.x = 1000;
-                else agent->acc.x = 0;
+                if (IsKeyDown(KEY_W) && !IsKeyDown(KEY_S)) agent->acc_dir.y = -1;
+                else if (IsKeyDown(KEY_S) && !IsKeyDown(KEY_W)) agent->acc_dir.y = 1;
+                else agent->acc_dir.y = 0;
+                if (IsKeyDown(KEY_A) && !IsKeyDown(KEY_D)) agent->acc_dir.x = -1;
+                else if (IsKeyDown(KEY_D) && !IsKeyDown(KEY_A)) agent->acc_dir.x = 1;
+                else agent->acc_dir.x = 0;
             }
         }
         

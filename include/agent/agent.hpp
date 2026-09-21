@@ -5,15 +5,17 @@
 #include<unordered_map>
 
 class Agent {
+    private:
     public:
+        bool haveWater;
+        Vector2 vel;
         int id;
         Vector2 pos;
-        Vector2 vel;
-        Vector2 acc;
+        Vector2 acc_dir; // this will be converted to unit vector only while updating velocity
+        const static float acc_mag;
         Color color;
-        bool haveWater;
-
         bool shouldStop;
+
 
         static const float circleRadius;
         static int numAgents;
