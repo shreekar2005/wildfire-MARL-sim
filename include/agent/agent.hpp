@@ -1,8 +1,8 @@
-# ifndef __agent_hpp__
-# define __agent_hpp__
+#pragma once
 
-#include<raylib.h>
-#include<unordered_map>
+#include <raylib.h>
+#include <thread>
+#include <unordered_map>
 
 class Agent {
     private:
@@ -35,5 +35,3 @@ class Agent {
 
         static void destructAll();
 };
-
-# endif

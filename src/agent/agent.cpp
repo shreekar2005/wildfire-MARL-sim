@@ -22,13 +22,13 @@ static void agentTask(Agent* agent) {
         agent->updateVel(dt);
         agent->updatePos(dt);
 
-        if (agent->pos.x < 0 || agent->pos.x > screenWidth) {
+        if (agent->pos.x < 0 || agent->pos.x > sim::screenWidth) {
             agent->vel.x = 0;
-            agent->pos.x = (agent->pos.x < 0) ? 0.0f : (float)screenWidth;
+            agent->pos.x = (agent->pos.x < 0) ? 0.0f : (float)sim::screenWidth;
         }
-        if (agent->pos.y < 0 || agent->pos.y > screenHeight) {
+        if (agent->pos.y < 0 || agent->pos.y > sim::screenHeight) {
             agent->vel.y = 0;
-            agent->pos.y = (agent->pos.y < 0) ? 0.0f : (float)screenHeight;
+            agent->pos.y = (agent->pos.y < 0) ? 0.0f : (float)sim::screenHeight;
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(1));

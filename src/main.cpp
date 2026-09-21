@@ -8,20 +8,21 @@
 
 #include <agent/agent.hpp>
 #include <simulation/simulation.hpp>
-#include <environment/grass.hpp>
+#include <environment/environment.hpp>
 
 
 int main(void)
 {
-    InitWindow(screenWidth, screenHeight, "wildfire_marl_simulation");
+    env::generateGrass(); // dummy for now
+    env::generateWaterBodies(); // dummy for now
+
+    InitWindow(sim::screenWidth, sim::screenHeight, "wildfire_marl_simulation");
     SetTargetFPS(300);
     
     Agent::id_to_agent.reserve(1000);
     Agent::id_to_thread.reserve(1000);
     
     Vector2 mousePos;
-
-    int selected_agent_id = -1; 
 
     while (!WindowShouldClose()) 
     {
@@ -38,16 +39,16 @@ int main(void)
                 Agent* agent= it.second;
                 float distAgentMouse = Vector2Distance(mousePos, agent->pos);
                 if (distAgentMouse <= Agent::circleRadius) {
-                    selected_agent_id = id;
+                    sim::selected_agent_id = id;
                     found = true;
                     break;
                 }
             }
-            if (!found) selected_agent_id = -1;
+            if (!found) sim::selected_agent_id = -1;
         }
 
-        if (selected_agent_id != -1) {
-            auto it = Agent::id_to_agent.find(selected_agent_id);
+        if (sim::selected_agent_id != -1) {
+            auto it = Agent::id_to_agent.find(sim::selected_agent_id);
             if (it != Agent::id_to_agent.end()) {
                 Agent* agent = it->second;
                 if (IsKeyDown(KEY_W) && !IsKeyDown(KEY_S)) agent->acc_dir.y = -1;
@@ -61,22 +62,8 @@ int main(void)
         
         BeginDrawing();
             ClearBackground(RAYWHITE);
-
-            drawGrass();
-
-            for(auto &it : Agent::id_to_agent) {
-                int id = it.first;
-                Agent* agent= it.second;
-                float dt = GetFrameTime();
-                
-                if (agent->id == selected_agent_id) {
-                    DrawCircleV(agent->pos, Agent::circleRadius, BLUE);
-                } else {
-                    DrawCircleV(agent->pos, Agent::circleRadius, agent->color);
-                }
-                DrawCircleLines(agent->pos.x, agent->pos.y, Agent::circleRadius, BLACK);
-            }
-
+            sim::drawGrass();
+            sim::drawAgents();
             DrawFPS(10, 10);
         EndDrawing();
     }
