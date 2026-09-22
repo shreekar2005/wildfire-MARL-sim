@@ -35,7 +35,7 @@ static void agentTask(Agent* agent) {
     }
 }
 
-const float Agent::acc_mag = 1000;
+const float Agent::acc_mag = config::acc_mag;
 int Agent::numAgents = 0;
 int Agent::nextAgentId = 0;
 std::unordered_map<int, Agent*> Agent::id_to_agent;

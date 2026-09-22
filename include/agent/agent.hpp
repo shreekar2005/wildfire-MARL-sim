@@ -3,13 +3,14 @@
 #include <raylib.h>
 #include <thread>
 #include <unordered_map>
+#include <config.hpp>
 
 class Agent {
     private:
     public:
         int id; // agent id
         bool haveWater; // does agent have water or not
-        int agentLocalPerceptionWidth = 15; // agent will be observing 15x15 cells for its local perception 
+        int agentLocalPerceptionWidth = config::agentLocalPerceptionWidth; // agent will be observing 15x15 cells for its local perception 
         Vector2 vel; // agent's current velocity (vx,vy)
         Vector2 pos; // agent's current position (x,y)
         Vector2 acc_dir; // used for only acceleration direction (it will be normalized when to update velocity)

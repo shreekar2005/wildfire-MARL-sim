@@ -1,0 +1,14 @@
+#pragma once
+
+namespace config {
+    // simulation configs
+    constexpr int screenWidth = 1500;
+    constexpr int screenHeight = 900;
+    constexpr int blockSize = 10;
+    constexpr int agentCircleRadius = 10;
+
+    // agent configs
+    constexpr int agentLocalPerceptionWidth = 15;
+    constexpr float acc_mag = 1000;
+    
+}
