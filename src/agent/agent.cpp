@@ -36,17 +36,15 @@ static void agentTask(Agent* agent) {
 }
 
 const float Agent::acc_mag = 1000;
-const float Agent::circleRadius = 15.0f;
 int Agent::numAgents = 0;
 int Agent::nextAgentId = 0;
 std::unordered_map<int, Agent*> Agent::id_to_agent;
 std::unordered_map<int, std::thread*> Agent::id_to_thread;
 
-Agent::Agent(Vector2 _pos, Color _color) {
+Agent::Agent(Vector2 _pos) {
     id = nextAgentId++;
     id_to_agent[id] = this;
     pos = _pos;
-    color = _color;
     vel = {0, 0};
     acc_dir = {0, 0};
     haveWater = false;
@@ -62,7 +60,6 @@ Agent::Agent(const Agent& other) {
     pos = other.pos;
     vel = other.vel;
     acc_dir = other.acc_dir;
-    color = other.color;
     haveWater = other.haveWater;
     numAgents++; 
     id_to_thread[id] = new std::thread(agentTask, this);
