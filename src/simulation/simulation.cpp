@@ -6,10 +6,15 @@
 #include <simulation/simulation.hpp>
 #include <agent/agent.hpp>
 
-const int sim::blockSize = 10;
-const int sim::screenWidth = 1500;
-const int sim::screenHeight = 900;
+const int sim::screenWidth = config::screenWidth;
+const int sim::screenHeight = config::screenHeight;
+
+const Color sim::agentColor = RED;
+const Color sim::selectedAgentColor = BLUE;
+const int sim::agentCircleRadius=config::agentCircleRadius;
 int sim::selected_agent_id = -1;
+
+const int sim::blockSize = config::blockSize;
 
 
 static double hash2D(int blockX, int blockY, int seed = 1337) {
@@ -91,10 +96,10 @@ void sim::drawAgents() {
         float dt = GetFrameTime();
         
         if (agent->id == sim::selected_agent_id) {
-            DrawCircleV(agent->pos, Agent::circleRadius, BLUE);
+            DrawCircleV(agent->pos, sim::agentCircleRadius, BLUE);
         } else {
-            DrawCircleV(agent->pos, Agent::circleRadius, agent->color);
+            DrawCircleV(agent->pos, sim::agentCircleRadius, sim::agentColor);
         }
-        DrawCircleLines(agent->pos.x, agent->pos.y, Agent::circleRadius, BLACK);
+        DrawCircleLines(agent->pos.x, agent->pos.y, sim::agentCircleRadius, BLACK);
     }
 }

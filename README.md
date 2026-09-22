@@ -45,16 +45,41 @@ wildfire-MARL-sim/
 
 * **Compiler:** Clang 3.4+ or GCC 4.9+ (C++14 compliance required)
 * **Build System:** CMake (>= 3.10) and Make
-* **Threading:** POSIX Threads (`pthread`)
-* **Graphics:** Raylib (`libraylib-dev`)
-* **IPC (Cross-Platform):** Boost.Interprocess (`libboost-all-dev`)
+* **Threading:** C++11 Threads (`std::thread`)
+* **Graphics:** Raylib (builds from source)
+* **IPC:** Redis Plus Plus (builds on `libhiredis-dev`)
 
 ### Linux Setup for Developers
 
-```bash
-sudo apt update
-sudo apt install build-essential cmake git libraylib-dev libboost-all-dev
+Because certain dependencies are not available in standard Ubuntu package managers (or are outdated), you must install their underlying dependencies and build the wrappers from source:
 
+```bash
+# 1. Install system prerequisites (X11, GL, and hiredis)
+sudo apt update
+sudo apt install build-essential cmake git libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev libhiredis-dev redis-server
+
+# 2. Build and install Raylib from source (Shared Library)
+git clone https://github.com/raysan5/raylib.git
+cd raylib
+mkdir build && cd build
+cmake -DBUILD_SHARED_LIBS=ON -DBUILD_EXAMPLES=OFF ..
+make -j$(nproc)
+sudo make install
+cd ../..
+rm -rf raylib
+
+# 3. Build and install redis-plus-plus system-wide
+git clone https://github.com/sewenew/redis-plus-plus.git
+cd redis-plus-plus
+mkdir build && cd build
+cmake -DREDIS_PLUS_PLUS_CXX_STANDARD=14 ..
+make -j$(nproc)
+sudo make install
+cd ../..
+rm -rf redis-plus-plus
+
+# 4. Ensure your system's dynamic linker cache is updated
+sudo ldconfig
 ```
 
 ---

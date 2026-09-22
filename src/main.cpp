@@ -15,7 +15,7 @@ int main(void)
 {
 
     InitWindow(sim::screenWidth, sim::screenHeight, "wildfire_marl_simulation");
-    SetTargetFPS(300);
+    SetTargetFPS(60);
     
     Agent::id_to_agent.reserve(1000);
     Agent::id_to_thread.reserve(1000);
@@ -39,7 +39,7 @@ int main(void)
                 int id = it.first;
                 Agent* agent= it.second;
                 float distAgentMouse = Vector2Distance(mousePos, agent->pos);
-                if (distAgentMouse <= Agent::circleRadius) {
+                if (distAgentMouse <= sim::agentCircleRadius) {
                     sim::selected_agent_id = id;
                     found = true;
                     break;

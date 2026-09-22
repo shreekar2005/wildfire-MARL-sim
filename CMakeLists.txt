@@ -7,6 +7,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+find_package(Threads REQUIRED)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_subdirectory(src/environment environment)
@@ -23,10 +25,6 @@ target_link_libraries(wildfire_marl_sim PRIVATE
     marl_train_lib
     marl_test_lib
     raylib
-    pthread 
-    GL 
-    m 
-    dl 
-    rt 
-    X11
+    Threads::Threads
+    redis++
 )
