@@ -13,8 +13,6 @@
 
 int main(void)
 {
-    env::generateGrass(); // dummy for now
-    env::generateWaterBodies(); // dummy for now
 
     InitWindow(sim::screenWidth, sim::screenHeight, "wildfire_marl_simulation");
     SetTargetFPS(300);
@@ -24,6 +22,8 @@ int main(void)
     
     Vector2 mousePos;
 
+    Environment environment;
+	environment.GenerateEnvironmentTerrain();
     while (!WindowShouldClose()) 
     {
         if (IsKeyPressed(KEY_C)) {
@@ -31,6 +31,7 @@ int main(void)
             new Agent(mousePos);
         }
 
+		//agent finding logic
         if (IsMouseButtonPressed(0)) {
             mousePos = GetMousePosition();
             bool found = false;
@@ -47,6 +48,8 @@ int main(void)
             if (!found) sim::selected_agent_id = -1;
         }
 
+		// agent movement logic
+
         if (sim::selected_agent_id != -1) {
             auto it = Agent::id_to_agent.find(sim::selected_agent_id);
             if (it != Agent::id_to_agent.end()) {
@@ -62,7 +65,8 @@ int main(void)
         
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            sim::drawGrass();
+            // sim::drawGrass();
+			environment.DrawEnvironment();
             sim::drawAgents();
             DrawFPS(10, 10);
         EndDrawing();

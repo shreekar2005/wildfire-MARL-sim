@@ -13,6 +13,8 @@ static void agentTask(Agent* agent) {
     auto lastTime = std::chrono::high_resolution_clock::now();
     
     while(!agent->shouldStop) {
+
+			//agent movement updates 
         auto currentTime = std::chrono::high_resolution_clock::now();
         std::chrono::duration<float> elapsed = currentTime - lastTime;
         lastTime = currentTime;
