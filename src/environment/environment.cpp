@@ -2,6 +2,7 @@
 #include <environment/environment.hpp>
 #include <iostream>
 #include <vector>
+#include <time.h>
 #include <raylib.h>
 
 //TODO 
@@ -41,7 +42,7 @@ void Environment::GenerateEnvironmentTerrain(){
 		for(int cols = 0 ; cols < env::gridHeight ;cols++ ){
 				for(int rows = 0 ; rows < env::gridWidth ;rows++){
 						
-						if(PerlinNoiseGrid[cols][rows] > env::TerrainGrassThreshold){
+						if(PerlinNoiseGrid[cols][rows] < env::TerrainWaterThreshold){
 								// Cell is Grass with flamibility of the noise map
 								
 								EnvironmentGrid[cols][rows] = EnvironmentCell (env::GRASS_CELL , PerlinNoiseGrid[cols][rows]);
@@ -62,7 +63,14 @@ void Environment::GenerateEnvironmentTerrain(){
 
 }
 void Environment::GenratePerlinNoiseMap(){
-		Image img = GenImagePerlinNoise(env::gridWidth, env::gridHeight, 0, 0, 2);
+ // Seed the random number generator
+    srand((unsigned int)time(NULL));
+
+    // Generate random offsets
+    int randomOffsetX = rand() % 10000;
+    int randomOffsetY = rand() % 10000;
+
+		Image img = GenImagePerlinNoise(env::gridWidth, env::gridHeight, randomOffsetX, randomOffsetY, 2);
 		Color * data = LoadImageColors(img); 
 		for(int cols = 0 ; cols < env::gridHeight ;cols++ ){
 				for(int rows = 0 ; rows < env::gridWidth ;rows++){
@@ -85,8 +93,9 @@ void Environment::DrawEnvironment(){
 		for(int cols = 0 ; cols < env::gridHeight ; cols++){
 				for(int rows = 0 ; rows < env::gridWidth ; rows++){
 						if(EnvironmentGrid[cols][rows].cell_type == env::GRASS_CELL){
+								Color custom = {0, (unsigned char)(255*(EnvironmentGrid[cols][rows].flamability)/env::TerrainWaterThreshold) , 0 , 200};
 
-						DrawRectangle(rows*sim::blockSize, cols*sim::blockSize, sim::blockSize, sim::blockSize, GREEN);
+						DrawRectangle(rows*sim::blockSize, cols*sim::blockSize, sim::blockSize, sim::blockSize, custom);
 						}else{
 
 						DrawRectangle(rows*sim::blockSize, cols*sim::blockSize, sim::blockSize, sim::blockSize, BLUE);

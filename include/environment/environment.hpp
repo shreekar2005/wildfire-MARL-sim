@@ -10,7 +10,8 @@ enum CELL_TYPE{
 
 		const int gridWidth = sim::screenWidth/sim::blockSize;
 		const int gridHeight= sim::screenHeight/sim::blockSize;
-		const float TerrainGrassThreshold = 0.2;
+		// in earth there is around 75% water :)
+		const float TerrainWaterThreshold= 0.75;
 
 };
 class EnvironmentCell{

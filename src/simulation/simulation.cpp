@@ -6,7 +6,7 @@
 #include <simulation/simulation.hpp>
 #include <agent/agent.hpp>
 
-const int sim::blockSize = 30;
+const int sim::blockSize = 10;
 const int sim::screenWidth = 1500;
 const int sim::screenHeight = 900;
 int sim::selected_agent_id = -1;
