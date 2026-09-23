@@ -1,5 +1,6 @@
 #include "config.hpp"
 #include "simulation/simulation.hpp"
+#include <chrono>
 #include <cstdlib>
 #include <environment/environment.hpp>
 #include <iostream>
@@ -34,6 +35,7 @@ Environment::~Environment() {
   EnvironmentGrid.clear();
   PerlinNoiseGrid.clear();
   FireThread->join();
+  delete FireThread;
 }
 
 void Environment::GenerateEnvironmentTerrain() {
@@ -88,8 +90,6 @@ void Environment::GenratePerlinNoiseMap() {
   UnloadImage(img);
 }
 
-
-
 void Environment::SpreadFire() {
 
   // random seed according to time
@@ -98,11 +98,28 @@ void Environment::SpreadFire() {
       {-1, 0}, {1, 0}, {0, 1}, {0, -1}};
 
   while (!envShouldStop) {
-    while (!FireQueue.empty()) {
+
+		auto lastTime = std::chrono::high_resolution_clock::now();
+    while (!FireQueue.empty() && !envShouldStop) {
+
+
+      auto currentTime = std::chrono::high_resolution_clock::now();
+      std::chrono::duration<float> elapsed = currentTime - lastTime;
+      lastTime = currentTime;
+      float dt = elapsed.count();
+
       auto element = FireQueue.front();
       int cellRow = element.second;
       int cellCol = element.first;
       FireQueue.pop();
+
+      EnvironmentGrid[cellCol][cellRow].timeBurned += dt;
+
+      if (EnvironmentGrid[cellCol][cellRow].timeBurned >= 0.5) {
+        EnvironmentGrid[cellCol][cellRow].cell_type = env::BURNED_GRASS_CELL;
+        continue;
+      }
+
       bool isFireLeaf = false;
       for (auto dir : directions) {
 
@@ -121,6 +138,10 @@ void Environment::SpreadFire() {
           break;
         }
       }
+
+      // push cell back to queue
+      FireQueue.push(element);
+
       if (isFireLeaf) {
         // generate random number
         float FireSpreadProbability = 1.0f * rand() / RAND_MAX;
@@ -134,32 +155,28 @@ void Environment::SpreadFire() {
             continue;
           if (cellRow + dir.second < 0)
             continue;
+
           if (EnvironmentGrid[cellCol + dir.first][cellRow + dir.second]
-                  .flamability >= FireSpreadProbability) {
+                  .flamability >= FireSpreadProbability && EnvironmentGrid[cellCol+dir.first][cellRow+dir.second].cell_type == env::GRASS_CELL) {
             // mark this cell as burning
             EnvironmentGrid[cellCol + dir.first][cellRow + dir.second]
                 .cell_type = env::BURNING_GRASS_CELL;
             FireQueue.push({cellCol + dir.first, cellRow + dir.second});
           }
         }
-
-          // push cell back to queue
-          FireQueue.push(element);
-
       }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds(2));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-
   }
 }
 void Environment::SpawnFire(Vector2 mousePos) {
   FireThreadid++;
-  int cellCol = mousePos.x/ config::blockSize;
+  int cellCol = mousePos.x / config::blockSize;
   int cellRow = mousePos.y / config::blockSize;
 
   EnvironmentGrid[cellCol][cellRow].cell_type = env::BURNING_GRASS_CELL;
-  FireQueue.push({cellCol ,cellRow});
+  FireQueue.push({cellCol, cellRow});
 }
 
 void Environment::DrawEnvironment() {
@@ -174,6 +191,8 @@ void Environment::DrawEnvironment() {
                             env::TerrainWaterThreshold) /
                            (1 - env::TerrainWaterThreshold));
 
+		//more green -> less flamability as close to water , less green more flamability as dry grass
+
         Color midColor =
             ColorLerp({255, 255, 0, 200}, {0, 100, 0, 200}, (1 - lerpValue));
         DrawRectangle(cols * config::blockSize, rows * config::blockSize,
@@ -186,11 +205,16 @@ void Environment::DrawEnvironment() {
 
       }
 
-      else if (EnvironmentGrid[cols][rows].cell_type == env::WATER_CELL){
+      else if (EnvironmentGrid[cols][rows].cell_type == env::WATER_CELL) {
 
         DrawRectangle(cols * config::blockSize, rows * config::blockSize,
                       config::blockSize, config::blockSize, BLUE);
+      } else if (EnvironmentGrid[cols][rows].cell_type ==
+                 env::BURNED_GRASS_CELL) {
+        DrawRectangle(cols * config::blockSize, rows * config::blockSize,
+                      config::blockSize, config::blockSize, GRAY);
       }
+
       DrawRectangleLines(cols * config::blockSize, rows * config::blockSize,
                          config::blockSize, config::blockSize, BLACK);
     }

@@ -25,6 +25,7 @@ class EnvironmentCell{
 		public:
 				float flamability;
 				env::CELL_TYPE cell_type;
+				float timeBurned = 0;
 
 		EnvironmentCell(env::CELL_TYPE ctype , float flamability);
 		EnvironmentCell();

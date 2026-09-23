@@ -50,11 +50,8 @@ int main(void)
         }
 		//fire spawn
 		if (IsMouseButtonPressed(1)) {
-				
             mousePos = GetMousePosition();
 			environment.SpawnFire(mousePos);
-
-            
         }
 
 
