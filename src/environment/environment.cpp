@@ -125,32 +125,56 @@ void Environment::spreadFireTask(std::pair<int, int> fireStartCell)
   std::queue<std::pair<int, int>> fireCellsQueue;
   fireCellsQueue.push(fireStartCell);
 
-  while (!envShouldStop)
+  auto lastTime = std::chrono::high_resolution_clock::now();
+  // std::lock_guard<std::mutex> lock(FireQueueMutex);
+  while (!fireCellsQueue.empty() && !envShouldStop)
   {
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<float> elapsed = currentTime - lastTime;
+    lastTime = currentTime;
+    float dt = elapsed.count();
 
-    auto lastTime = std::chrono::high_resolution_clock::now();
-    // std::lock_guard<std::mutex> lock(FireQueueMutex);
-    while (!fireCellsQueue.empty() && !envShouldStop)
+    auto element = fireCellsQueue.front();
+    int cellRow = element.second;
+    int cellCol = element.first;
+    fireCellsQueue.pop();
+
+    environmentGrid[cellCol][cellRow].timeBurned += dt;
+
+    if (environmentGrid[cellCol][cellRow].timeBurned >= 0.5)
     {
-      auto currentTime = std::chrono::high_resolution_clock::now();
-      std::chrono::duration<float> elapsed = currentTime - lastTime;
-      lastTime = currentTime;
-      float dt = elapsed.count();
+      environmentGrid[cellCol][cellRow].cell_type = env::BURNED_GRASS_CELL;
+      continue;
+    }
 
-      auto element = fireCellsQueue.front();
-      int cellRow = element.second;
-      int cellCol = element.first;
-      fireCellsQueue.pop();
+    bool isFireLeaf = false;
+    for (auto dir : directions)
+    {
 
-      environmentGrid[cellCol][cellRow].timeBurned += dt;
-
-      if (environmentGrid[cellCol][cellRow].timeBurned >= 0.5)
-      {
-        environmentGrid[cellCol][cellRow].cell_type = env::BURNED_GRASS_CELL;
+      if (cellCol + dir.first < 0)
         continue;
-      }
+      if (cellCol + dir.first >= env::gridWidth)
+        continue;
+      if (cellRow + dir.second >= env::gridHeight)
+        continue;
+      if (cellRow + dir.second < 0)
+        continue;
 
-      bool isFireLeaf = false;
+      if (environmentGrid[cellCol + dir.first][cellRow + dir.second]
+              .cell_type == env::GRASS_CELL)
+      {
+        isFireLeaf = true;
+        break;
+      }
+    }
+
+    // push cell back to queue
+    fireCellsQueue.push(element);
+
+    if (isFireLeaf)
+    {
+      // generate random number
+      float FireSpreadProbability = 1.0f * rand() / RAND_MAX;
       for (auto dir : directions)
       {
 
@@ -164,46 +188,18 @@ void Environment::spreadFireTask(std::pair<int, int> fireStartCell)
           continue;
 
         if (environmentGrid[cellCol + dir.first][cellRow + dir.second]
-                .cell_type == env::GRASS_CELL)
+                    .flamability >= FireSpreadProbability &&
+            environmentGrid[cellCol + dir.first][cellRow + dir.second].cell_type == env::GRASS_CELL)
         {
-          isFireLeaf = true;
-          break;
+          // mark this cell as burning
+          environmentGrid[cellCol + dir.first][cellRow + dir.second]
+              .cell_type = env::BURNING_GRASS_CELL;
+          fireCellsQueue.push({cellCol + dir.first, cellRow + dir.second});
         }
       }
-
-      // push cell back to queue
-      fireCellsQueue.push(element);
-
-      if (isFireLeaf)
-      {
-        // generate random number
-        float FireSpreadProbability = 1.0f * rand() / RAND_MAX;
-        for (auto dir : directions)
-        {
-
-          if (cellCol + dir.first < 0)
-            continue;
-          if (cellCol + dir.first >= env::gridWidth)
-            continue;
-          if (cellRow + dir.second >= env::gridHeight)
-            continue;
-          if (cellRow + dir.second < 0)
-            continue;
-
-          if (environmentGrid[cellCol + dir.first][cellRow + dir.second]
-                      .flamability >= FireSpreadProbability &&
-              environmentGrid[cellCol + dir.first][cellRow + dir.second].cell_type == env::GRASS_CELL)
-          {
-            // mark this cell as burning
-            environmentGrid[cellCol + dir.first][cellRow + dir.second]
-                .cell_type = env::BURNING_GRASS_CELL;
-            fireCellsQueue.push({cellCol + dir.first, cellRow + dir.second});
-          }
-        }
-      }
-
-      std::this_thread::sleep_for(std::chrono::milliseconds(config::FireThreadWaitTime));
     }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(config::FireThreadWaitTime));
   }
 }
 void Environment::spawnFire(Vector2 mousePos)
@@ -259,7 +255,6 @@ void Environment::drawEnvironment()
         DrawRectangle(cols * config::blockSize, rows * config::blockSize,
                       config::blockSize, config::blockSize, GRAY);
       }
-
     }
   }
 }
