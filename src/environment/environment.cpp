@@ -132,7 +132,6 @@ void Environment::spreadFireTask(std::pair<int, int> fireStartCell)
     // std::lock_guard<std::mutex> lock(FireQueueMutex);
     while (!fireCellsQueue.empty() && !envShouldStop)
     {
-      TraceLog(LOG_INFO, "Fire Thread %d is running", std::this_thread::get_id());
       auto currentTime = std::chrono::high_resolution_clock::now();
       std::chrono::duration<float> elapsed = currentTime - lastTime;
       lastTime = currentTime;
@@ -261,8 +260,6 @@ void Environment::drawEnvironment()
                       config::blockSize, config::blockSize, GRAY);
       }
 
-      DrawRectangleLines(cols * config::blockSize, rows * config::blockSize,
-                         config::blockSize, config::blockSize, BLACK);
     }
   }
 }
