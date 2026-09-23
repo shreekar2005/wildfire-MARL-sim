@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <thread>
 
+#include "config.hpp"
 #include "raylib.h"
 #include "raymath.h"
 
@@ -47,6 +48,15 @@ int main(void)
             }
             if (!found) sim::selected_agent_id = -1;
         }
+		//fire spawn
+		if (IsMouseButtonPressed(1)) {
+				
+            mousePos = GetMousePosition();
+			environment.SpawnFire(mousePos);
+
+            
+        }
+		environment.SpreadFireSingleThread();
 
 		// agent movement logic
 
@@ -65,7 +75,6 @@ int main(void)
         
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            // sim::drawGrass();
 			environment.DrawEnvironment();
             sim::drawAgents();
             DrawFPS(10, 10);

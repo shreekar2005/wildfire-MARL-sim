@@ -1,5 +1,6 @@
 #pragma once
 
+#include <raylib.h>
 namespace sim{
 
 extern const int screenWidth;
