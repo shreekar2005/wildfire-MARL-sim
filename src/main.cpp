@@ -24,7 +24,7 @@ int main(void)
     Vector2 mousePos;
 
     Environment environment;
-	environment.GenerateEnvironmentTerrain();
+	environment.generateEnvironmentTerrain();
     while (!WindowShouldClose()) 
     {
 			float deltaTime = GetFrameTime();
@@ -52,7 +52,7 @@ int main(void)
 		//fire spawn
 		if (IsMouseButtonPressed(1)) {
             mousePos = GetMousePosition();
-			environment.SpawnFire(mousePos);
+			environment.spawnFire(mousePos);
         }
 
 
@@ -73,8 +73,10 @@ int main(void)
         
         BeginDrawing();
             ClearBackground(RAYWHITE);
-			environment.DrawEnvironment();
+			sim::drawEnvironment(environment);
             sim::drawAgents();
+            // Draw FPS in the box in top
+            DrawRectangle(0, 0, 100, 30, SKYBLUE);
             DrawFPS(10, 10);
         EndDrawing();
     }

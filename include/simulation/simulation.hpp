@@ -1,6 +1,7 @@
 #pragma once
 
 #include <raylib.h>
+#include <environment/environment.hpp>
 namespace sim{
 
 extern const int screenWidth;
@@ -13,8 +14,8 @@ extern int selected_agent_id;
 
 extern const int blockSize;
 
-//draw grass based on terrain functions
-void drawGrass();
+//draw environment based on terrain functions
+void drawEnvironment(Environment &env);
 void drawAgents();
 
 }
