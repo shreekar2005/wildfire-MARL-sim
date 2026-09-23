@@ -9,11 +9,6 @@
 #include <time.h>
 #include <vector>
 
-// TODO
-//  generate grass logic
-//  generate fire logic
-//  update fire logic
-
 EnvironmentCell::EnvironmentCell() {
 
 };
@@ -24,29 +19,30 @@ EnvironmentCell::EnvironmentCell(env::CELL_TYPE ctype, float flamability) {
 }
 Environment::Environment() {
 
+  envShouldStop = false;
   EnvironmentGrid = std::vector<std::vector<EnvironmentCell>>(
-      env::gridHeight, std::vector<EnvironmentCell>(env::gridWidth));
+      env::gridWidth, std::vector<EnvironmentCell>(env::gridHeight));
   PerlinNoiseGrid = std::vector<std::vector<float>>(
-      env::gridHeight, std::vector<float>(env::gridWidth));
+      env::gridWidth, std::vector<float>(env::gridHeight));
   FireThreadid = 0;
-
-  // EnvironmentGrid = new
-  // std::vector<std::vector<EnvironmentCell>>(env::gridHeight ,
-  // std::vector<EnvironmentCell>(env::gridWidth));
+  FireThread = new std::thread(&Environment::SpreadFire, this);
 }
 
 Environment::~Environment() {
 
+  envShouldStop = true;
   EnvironmentGrid.clear();
   PerlinNoiseGrid.clear();
+  FireThread->join();
 }
+
 void Environment::GenerateEnvironmentTerrain() {
 
   // Generate Perlin Noise Map
   GenratePerlinNoiseMap();
 
-  for (int cols = 0; cols < env::gridHeight; cols++) {
-    for (int rows = 0; rows < env::gridWidth; rows++) {
+  for (int cols = 0; cols < env::gridWidth; cols++) {
+    for (int rows = 0; rows < env::gridHeight; rows++) {
 
       if (PerlinNoiseGrid[cols][rows] > env::TerrainWaterThreshold) {
         // Cell is Grass with flamibility of the noise map
@@ -79,11 +75,11 @@ void Environment::GenratePerlinNoiseMap() {
   Image img = GenImagePerlinNoise(env::gridWidth, env::gridHeight,
                                   randomOffsetX, randomOffsetY, 2);
   Color *data = LoadImageColors(img);
-  for (int cols = 0; cols < env::gridHeight; cols++) {
-    for (int rows = 0; rows < env::gridWidth; rows++) {
+  for (int cols = 0; cols < env::gridWidth; cols++) {
+    for (int rows = 0; rows < env::gridHeight; rows++) {
       // load data of image to grid
       //  since it is grayscale R == G == B
-      int index = cols * env::gridWidth + rows;
+      int index = rows * env::gridWidth + cols;
 
       // normalize between 0 and 1
       PerlinNoiseGrid[cols][rows] = data[index].r / 255.0f;
@@ -91,90 +87,85 @@ void Environment::GenratePerlinNoiseMap() {
   }
   UnloadImage(img);
 }
-void Environment::SpreadFireSingleThread() {
 
+
+
+void Environment::SpreadFire() {
+
+  // random seed according to time
+  srand((unsigned int)time(NULL));
   std::vector<std::pair<int, int>> directions = {
       {-1, 0}, {1, 0}, {0, 1}, {0, -1}};
-  srand((unsigned int)time(NULL));
 
-  for (int cols = 0; cols < env::gridHeight; cols++) {
-    for (int rows = 0; rows < env::gridWidth; rows++) {
+  while (!envShouldStop) {
+    while (!FireQueue.empty()) {
+      auto element = FireQueue.front();
+      int cellRow = element.second;
+      int cellCol = element.first;
+      FireQueue.pop();
+      bool isFireLeaf = false;
+      for (auto dir : directions) {
 
-      if (EnvironmentGrid[cols][rows].cell_type == env::BURNING_GRASS_CELL) {
+        if (cellCol + dir.first < 0)
+          continue;
+        if (cellCol + dir.first >= env::gridWidth)
+          continue;
+        if (cellRow + dir.second >= env::gridHeight)
+          continue;
+        if (cellRow + dir.second < 0)
+          continue;
 
-        bool checkLeaf = false;
-        for (auto dir : directions) {
-          if (cols + dir.first < 0)
-            continue;
-          if (cols + dir.first >= env::gridWidth)
-            continue;
-          if (rows + dir.second < 0)
-            continue;
-          if (rows + dir.second > env::gridHeight)
-            continue;
-          if (EnvironmentGrid[cols + dir.first][rows + dir.second].cell_type ==
-              env::GRASS_CELL) {
-            checkLeaf = true;
-            break;
-          }
-        }
-
-        if (checkLeaf) {
-
-          // generate random number between 0 and 1
-          float FireSpreadRandomChange = 1.0 * rand() / RAND_MAX;
-          for (auto dir : directions) {
-            if (cols + dir.first < 0)
-              continue;
-            if (cols + dir.first >= env::gridWidth)
-              continue;
-            if (rows + dir.second < 0)
-              continue;
-            if (rows + dir.second > env::gridHeight)
-              continue;
-            if (EnvironmentGrid[cols + dir.first][rows + dir.second]
-                    .flamability >= FireSpreadRandomChange) {
-				EnvironmentGrid[cols + dir.first][rows + dir.second].cell_type = env::BURNING_GRASS_CELL;
-
-            }
-          }
+        if (EnvironmentGrid[cellCol + dir.first][cellRow + dir.second]
+                .cell_type == env::GRASS_CELL) {
+          isFireLeaf = true;
+          break;
         }
       }
-    }
-  }
-}
-void Environment::SpreadFire(int cellRow, int cellCol) {
+      if (isFireLeaf) {
+        // generate random number
+        float FireSpreadProbability = 1.0f * rand() / RAND_MAX;
+        for (auto dir : directions) {
 
-  // mutlithreaded code
-  //
-  //  std::queue<std::pair<int,int>> ThisFireQueue;
-  //  ThisFireQueue.push({cellRow , cellCol});
-  //  while (!ThisFireQueue.empty()) {
-  //
-  //  		auto element = ThisFireQueue.front();
-  //  		int ThisFireCellRow = element.first;
-  //  		int ThisFireCellCol= element.second;
-  //  		EnvironmentGrid[ThisFireCellCol][ThisFireCellRow].cell_type =
-  //  env::BURNING_GRASS_CELL;
-  //
-  //
-  //  }
-  //
+          if (cellCol + dir.first < 0)
+            continue;
+          if (cellCol + dir.first >= env::gridWidth)
+            continue;
+          if (cellRow + dir.second >= env::gridHeight)
+            continue;
+          if (cellRow + dir.second < 0)
+            continue;
+          if (EnvironmentGrid[cellCol + dir.first][cellRow + dir.second]
+                  .flamability >= FireSpreadProbability) {
+            // mark this cell as burning
+            EnvironmentGrid[cellCol + dir.first][cellRow + dir.second]
+                .cell_type = env::BURNING_GRASS_CELL;
+            FireQueue.push({cellCol + dir.first, cellRow + dir.second});
+          }
+        }
+
+          // push cell back to queue
+          FireQueue.push(element);
+
+      }
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(2));
+    }
+
+  }
 }
 void Environment::SpawnFire(Vector2 mousePos) {
   FireThreadid++;
-  int cellCol = mousePos.y / config::blockSize;
-  int cellRow = mousePos.x / config::blockSize;
+  int cellCol = mousePos.x/ config::blockSize;
+  int cellRow = mousePos.y / config::blockSize;
 
   EnvironmentGrid[cellCol][cellRow].cell_type = env::BURNING_GRASS_CELL;
-  // FireThreads[FireThreadid] = new std::thread(&Environment::SpreadFire ,this
-  // , cellRow,cellCol);
+  FireQueue.push({cellCol ,cellRow});
 }
 
 void Environment::DrawEnvironment() {
 
-  for (int cols = 0; cols < env::gridHeight; cols++) {
-    for (int rows = 0; rows < env::gridWidth; rows++) {
+  for (int cols = 0; cols < env::gridWidth; cols++) {
+    for (int rows = 0; rows < env::gridHeight; rows++) {
       if (EnvironmentGrid[cols][rows].cell_type == env::GRASS_CELL) {
         // RGB
         //  0.25 to 0.85 --> 0 to 1
@@ -185,22 +176,22 @@ void Environment::DrawEnvironment() {
 
         Color midColor =
             ColorLerp({255, 255, 0, 200}, {0, 100, 0, 200}, (1 - lerpValue));
-        DrawRectangle(rows * config::blockSize, cols * config::blockSize,
+        DrawRectangle(cols * config::blockSize, rows * config::blockSize,
                       config::blockSize, config::blockSize, midColor);
 
       } else if (EnvironmentGrid[cols][rows].cell_type ==
                  env::BURNING_GRASS_CELL) {
-        DrawRectangle(rows * config::blockSize, cols * config::blockSize,
+        DrawRectangle(cols * config::blockSize, rows * config::blockSize,
                       config::blockSize, config::blockSize, ORANGE);
 
       }
 
-      else {
+      else if (EnvironmentGrid[cols][rows].cell_type == env::WATER_CELL){
 
-        DrawRectangle(rows * config::blockSize, cols * config::blockSize,
+        DrawRectangle(cols * config::blockSize, rows * config::blockSize,
                       config::blockSize, config::blockSize, BLUE);
       }
-      DrawRectangleLines(rows * config::blockSize, cols * config::blockSize,
+      DrawRectangleLines(cols * config::blockSize, rows * config::blockSize,
                          config::blockSize, config::blockSize, BLACK);
     }
   }

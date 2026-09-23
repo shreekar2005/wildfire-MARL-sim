@@ -56,7 +56,7 @@ int main(void)
 
             
         }
-		environment.SpreadFireSingleThread();
+
 
 		// agent movement logic
 

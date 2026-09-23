@@ -34,9 +34,10 @@ class Environment{
 		public:
 				std::vector<std::vector<EnvironmentCell>> EnvironmentGrid;
 				std::vector<std::vector<float>> PerlinNoiseGrid;
-				std::unordered_map<int ,std::thread *> FireThreads;
-				// std::queue<std::pair<int ,int>> FireQueue;
+				std::thread * FireThread;
+				std::queue<std::pair<int ,int>> FireQueue;
 				int FireThreadid = 0;
+				bool envShouldStop;
 		
 
 				Environment();
@@ -45,8 +46,7 @@ class Environment{
 				void DrawEnvironment();
 				void GenratePerlinNoiseMap();
 				void SpawnFire(Vector2 mousePos);
-				void SpreadFire(int cellRow , int cellCol);
-				void SpreadFireSingleThread();
+				void SpreadFire();
 
 
 
