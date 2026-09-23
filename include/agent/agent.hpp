@@ -38,6 +38,8 @@ class Agent {
         /// @brief update the position of agent assuming constant velocity. velocity will decay after change in position
         /// @param time time for which we have to change position
         void updatePos(float time);
+		void throwWater();
+
 
         // Will delete all agents and their currusponding threads
         static void destructAll();

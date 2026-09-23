@@ -50,7 +50,7 @@ int main(void)
             if (!found) sim::selected_agent_id = -1;
         }
 		//fire spawn
-		if (IsMouseButtonPressed(1)) {
+		if (IsMouseButtonPressed(2)) {
             mousePos = GetMousePosition();
 			environment.spawnFire(mousePos);
         }
