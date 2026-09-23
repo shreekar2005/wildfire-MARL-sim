@@ -6,6 +6,9 @@
 #include <thread>
 #include <unordered_map>
 #include <vector>
+#include <chrono>
+#include <iostream>
+
 namespace env
 {
 
@@ -28,7 +31,8 @@ class EnvironmentCell
 public:
 	float flamability;
 	env::CELL_TYPE cell_type;
-	float timeBurned = 0;
+	// float timeBurned = 0;
+	std::chrono::steady_clock::time_point expiryBurningTime;
 
 	EnvironmentCell(env::CELL_TYPE ctype, float flamability);
 	EnvironmentCell();

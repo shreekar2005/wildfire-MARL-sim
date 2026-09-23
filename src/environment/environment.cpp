@@ -122,26 +122,25 @@ void Environment::spreadFireTask(std::pair<int, int> fireStartCell)
   std::vector<std::pair<int, int>> directions = {
       {-1, 0}, {1, 0}, {0, 1}, {0, -1}};
 
+      std::chrono::steady_clock::time_point current_time = std::chrono::steady_clock::now();
+   environmentGrid[fireStartCell.first][fireStartCell.second].cell_type = env::BURNING_GRASS_CELL;
+   environmentGrid[fireStartCell.first][fireStartCell.second].expiryBurningTime = current_time + (std::chrono::milliseconds)config::GrassBurnTimeMs;
   std::queue<std::pair<int, int>> fireCellsQueue;
   fireCellsQueue.push(fireStartCell);
 
-  auto lastTime = std::chrono::high_resolution_clock::now();
   // std::lock_guard<std::mutex> lock(FireQueueMutex);
   while (!fireCellsQueue.empty() && !envShouldStop)
   {
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<float> elapsed = currentTime - lastTime;
-    lastTime = currentTime;
-    float dt = elapsed.count();
+    current_time = std::chrono::steady_clock::now();
 
     auto element = fireCellsQueue.front();
     int cellRow = element.second;
     int cellCol = element.first;
     fireCellsQueue.pop();
 
-    environmentGrid[cellCol][cellRow].timeBurned += dt;
-
-    if (environmentGrid[cellCol][cellRow].timeBurned >= 0.5)
+    
+    // TraceLog(LOG_INFO, "%f", environmentGrid[cellCol][cellRow].timeBurned);
+    if (environmentGrid[cellCol][cellRow].expiryBurningTime <= current_time)
     {
       environmentGrid[cellCol][cellRow].cell_type = env::BURNED_GRASS_CELL;
       continue;
@@ -174,7 +173,7 @@ void Environment::spreadFireTask(std::pair<int, int> fireStartCell)
     if (isFireLeaf)
     {
       // generate random number
-      float FireSpreadProbability = 1.0f * rand() / RAND_MAX;
+      float randomNumForFireSpread = 1.0f * rand() / RAND_MAX;
       for (auto dir : directions)
       {
 
@@ -187,19 +186,18 @@ void Environment::spreadFireTask(std::pair<int, int> fireStartCell)
         if (cellRow + dir.second < 0)
           continue;
 
-        if (environmentGrid[cellCol + dir.first][cellRow + dir.second]
-                    .flamability >= FireSpreadProbability &&
+        if ((environmentGrid[cellCol + dir.first][cellRow + dir.second].flamability / config::expectedCatchFireTimeMs) >= randomNumForFireSpread &&
             environmentGrid[cellCol + dir.first][cellRow + dir.second].cell_type == env::GRASS_CELL)
         {
           // mark this cell as burning
-          environmentGrid[cellCol + dir.first][cellRow + dir.second]
-              .cell_type = env::BURNING_GRASS_CELL;
+          environmentGrid[cellCol + dir.first][cellRow + dir.second].cell_type = env::BURNING_GRASS_CELL;
+          environmentGrid[cellCol + dir.first][cellRow + dir.second].expiryBurningTime =current_time + (std::chrono::milliseconds)config::GrassBurnTimeMs;
           fireCellsQueue.push({cellCol + dir.first, cellRow + dir.second});
         }
       }
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(config::FireThreadWaitTime));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 }
 void Environment::spawnFire(Vector2 mousePos)
@@ -207,8 +205,6 @@ void Environment::spawnFire(Vector2 mousePos)
 
   int cellCol = mousePos.x / config::blockSize;
   int cellRow = mousePos.y / config::blockSize;
-
-  environmentGrid[cellCol][cellRow].cell_type = env::BURNING_GRASS_CELL;
   std::pair<int, int> fireStartCell = {cellCol, cellRow};
   fireThreads.push_back(new std::thread(&Environment::spreadFireTask, this, fireStartCell));
 }
