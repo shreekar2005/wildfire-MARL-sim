@@ -27,6 +27,7 @@ int main(void)
 	environment.GenerateEnvironmentTerrain();
     while (!WindowShouldClose()) 
     {
+			float deltaTime = GetFrameTime();
         if (IsKeyPressed(KEY_C)) {
             mousePos = GetMousePosition();
             new Agent(mousePos);

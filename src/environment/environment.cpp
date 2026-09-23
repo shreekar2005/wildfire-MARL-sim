@@ -9,6 +9,8 @@
 #include <thread>
 #include <time.h>
 #include <vector>
+#include <mutex>
+std::mutex FireQueueMutex;
 
 EnvironmentCell::EnvironmentCell() {
 
@@ -100,6 +102,7 @@ void Environment::SpreadFire() {
   while (!envShouldStop) {
 
 		auto lastTime = std::chrono::high_resolution_clock::now();
+		std::lock_guard<std::mutex> lock( FireQueueMutex );
     while (!FireQueue.empty() && !envShouldStop) {
 
 
@@ -166,7 +169,7 @@ void Environment::SpreadFire() {
         }
       }
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+      std::this_thread::sleep_for(std::chrono::milliseconds(config::FireThreadWaitTime));
     }
   }
 }
@@ -176,6 +179,7 @@ void Environment::SpawnFire(Vector2 mousePos) {
   int cellRow = mousePos.y / config::blockSize;
 
   EnvironmentGrid[cellCol][cellRow].cell_type = env::BURNING_GRASS_CELL;
+
   FireQueue.push({cellCol, cellRow});
 }
 
