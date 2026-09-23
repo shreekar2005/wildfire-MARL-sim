@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <thread>
 
+#include "config.hpp"
 #include "raylib.h"
 #include "raymath.h"
 
@@ -13,8 +14,6 @@
 
 int main(void)
 {
-    env::generateGrass(); // dummy for now
-    env::generateWaterBodies(); // dummy for now
 
     InitWindow(sim::screenWidth, sim::screenHeight, "wildfire_marl_simulation");
     SetTargetFPS(60);
@@ -24,13 +23,17 @@ int main(void)
     
     Vector2 mousePos;
 
+    Environment environment;
+	environment.generateEnvironmentTerrain();
     while (!WindowShouldClose()) 
     {
+			float deltaTime = GetFrameTime();
         if (IsKeyPressed(KEY_C)) {
             mousePos = GetMousePosition();
             new Agent(mousePos);
         }
 
+		//agent finding logic
         if (IsMouseButtonPressed(0)) {
             mousePos = GetMousePosition();
             bool found = false;
@@ -46,6 +49,14 @@ int main(void)
             }
             if (!found) sim::selected_agent_id = -1;
         }
+		//fire spawn
+		if (IsMouseButtonPressed(1)) {
+            mousePos = GetMousePosition();
+			environment.spawnFire(mousePos);
+        }
+
+
+		// agent movement logic
 
         if (sim::selected_agent_id != -1) {
             auto it = Agent::id_to_agent.find(sim::selected_agent_id);
@@ -62,8 +73,10 @@ int main(void)
         
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            sim::drawGrass();
+			sim::drawEnvironment(environment);
             sim::drawAgents();
+            // Draw FPS in the box in top
+            DrawRectangle(0, 0, 100, 30, SKYBLUE);
             DrawFPS(10, 10);
         EndDrawing();
     }
