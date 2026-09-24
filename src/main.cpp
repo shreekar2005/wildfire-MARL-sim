@@ -50,7 +50,7 @@ int main(void)
             if (!found) sim::selected_agent_id = -1;
         }
 		//fire spawn
-		if (IsMouseButtonPressed(2)) {
+		if (IsMouseButtonPressed(0) && (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))) {
             mousePos = GetMousePosition();
 			environment.spawnFire(mousePos);
         }
