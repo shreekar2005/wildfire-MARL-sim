@@ -32,8 +32,10 @@ void sim::drawAgents() {
         float dt = GetFrameTime();
         
         // DrawCircleLines(agent->pos.x, agent->pos.y, sim::agentCircleRadius, WHITE);
-        DrawCircleLinesEx(agent->pos, sim::agentCircleRadius, 0.3f, WHITE);
+       // DrawCircleLinesEx(agent->pos, sim::agentCircleRadius, 0.3f, WHITE);
 
+		// adding this instead of above for legacy raylib support
+		DrawCircleLines(agent->pos.x, agent->pos.y, sim::agentCircleRadius, WHITE);
         if (agent->id == sim::selected_agent_id) {
             // DrawCircleV(agent->pos, sim::agentCircleRadius, sim::selectedAgentColor);
             droneTexturePos.x = agent->pos.x - (selectedDroneTexture.width*droneImgScale/2);
