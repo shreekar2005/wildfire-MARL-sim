@@ -2,10 +2,15 @@
 
 namespace config {
     // simulation configs
+    //if config seed is 0 it will be random according to time
+	constexpr unsigned int seed = 2;
+
     constexpr int screenWidth = 1500;
     constexpr int screenHeight = 900;
     constexpr int blockSize = 10;
     constexpr int agentCircleRadius = 15;
+
+    constexpr int simulationSpeedFactor = 1;
 
     // agent configs
     constexpr int agentLocalPerceptionWidth = 15;
@@ -14,7 +19,5 @@ namespace config {
 	constexpr int GrassBurnTimeMs = 8000;//ms (time taken to burn the grass cell)
 	constexpr int expectedCatchFireTimeMs = 100; //ms (which is inversly proportional to rate of fire speed)
 
-		//if config seed is 0 it will be random according to time
-	constexpr unsigned int seed = 2;
     
 }

@@ -12,14 +12,14 @@
 #include <mutex>
 std::mutex FireQueueMutex;
 
-EnvironmentCell::EnvironmentCell() {}
+env::EnvironmentCell::EnvironmentCell() {}
 
-EnvironmentCell::EnvironmentCell(env::CELL_TYPE ctype, float flamability)
+env::EnvironmentCell::EnvironmentCell(env::CELL_TYPE ctype, float flamability)
 {
   this->cell_type = ctype;
   this->flamability = flamability;
 }
-Environment::Environment()
+env::Environment::Environment()
 {
   envShouldStop = false;
   environmentGrid = std::vector<std::vector<EnvironmentCell>>(
@@ -28,7 +28,7 @@ Environment::Environment()
   env::gridWidth, std::vector<float>(env::gridHeight));
 }
 
-Environment::~Environment()
+env::Environment::~Environment()
 {
   envShouldStop = true;
   environmentGrid.clear();
@@ -44,7 +44,7 @@ Environment::~Environment()
   fireThreads.clear();
 }
 
-void Environment::generateEnvironmentTerrain()
+void env::Environment::generateEnvironmentTerrain()
 {
   // Generate Perlin Noise Map
   generatePerlinNoiseMap();
@@ -66,7 +66,7 @@ void Environment::generateEnvironmentTerrain()
     }
   }
 }
-void Environment::generatePerlinNoiseMap()
+void env::Environment::generatePerlinNoiseMap()
 {
   // Seed the random number generator
   if (config::seed == 0) srand((unsigned int)time(NULL));
@@ -92,22 +92,27 @@ void Environment::generatePerlinNoiseMap()
   UnloadImage(img);
 }
 
-void Environment::spreadFireTask(std::pair<int, int> fireStartCell)
+void env::Environment::spreadFireTask(std::pair<int, int> fireStartCell)
 {
   // random seed according to time
   srand((unsigned int)time(NULL));
   std::vector<std::pair<int, int>> directions = {{-1, 0}, {1, 0}, {0, 1}, {0, -1}};
 
-  std::chrono::steady_clock::time_point current_time = std::chrono::steady_clock::now();
+  // std::chrono::steady_clock::time_point current_time = std::chrono::steady_clock::now();
+  simTick current_time = sim::Time::getCurrentSimTick();
+
   environmentGrid[fireStartCell.first][fireStartCell.second].cell_type = env::BURNING_GRASS_CELL;
-  environmentGrid[fireStartCell.first][fireStartCell.second].expiryBurningTime = current_time + (std::chrono::milliseconds)config::GrassBurnTimeMs;
+  // environmentGrid[fireStartCell.first][fireStartCell.second].expiryBurningTime = current_time + (std::chrono::milliseconds)config::GrassBurnTimeMs;
+  environmentGrid[fireStartCell.first][fireStartCell.second].expiryBurningTime = current_time + (simTick)config::GrassBurnTimeMs;
+
   std::queue<std::pair<int, int>> fireCellsQueue;
   fireCellsQueue.push(fireStartCell);
 
   // std::lock_guard<std::mutex> lock(FireQueueMutex);
   while (!fireCellsQueue.empty() && !envShouldStop)
   {
-    current_time = std::chrono::steady_clock::now();
+    // current_time = std::chrono::steady_clock::now();
+    current_time = sim::Time::getCurrentSimTick();
 
     auto element = fireCellsQueue.front();
     int cellRow = element.second;
@@ -156,16 +161,17 @@ void Environment::spreadFireTask(std::pair<int, int> fireStartCell)
         {
           // mark this cell as burning
           environmentGrid[cellCol + dir.first][cellRow + dir.second].cell_type = env::BURNING_GRASS_CELL;
-          environmentGrid[cellCol + dir.first][cellRow + dir.second].expiryBurningTime =current_time + (std::chrono::milliseconds)config::GrassBurnTimeMs;
+          environmentGrid[cellCol + dir.first][cellRow + dir.second].expiryBurningTime =current_time + (simTick)config::GrassBurnTimeMs;
           fireCellsQueue.push({cellCol + dir.first, cellRow + dir.second});
         }
       }
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    sim::Time::sleep(1);
   }
 }
-void Environment::spawnFire(Vector2 mousePos)
+void env::Environment::spawnFire(Vector2 mousePos)
 {
   int cellCol = mousePos.x / config::blockSize;
   int cellRow = mousePos.y / config::blockSize;
@@ -173,7 +179,7 @@ void Environment::spawnFire(Vector2 mousePos)
   fireThreads.push_back(new std::thread(&Environment::spreadFireTask, this, fireStartCell));
 }
 
-void Environment::drawEnvironment()
+void env::Environment::drawEnvironment()
 {
   for (int cols = 0; cols < env::gridWidth; cols++)
   {

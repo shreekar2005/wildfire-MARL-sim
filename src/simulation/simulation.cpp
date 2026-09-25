@@ -13,7 +13,77 @@ const int sim::screenHeight = config::screenHeight;
 const int sim::agentCircleRadius=config::agentCircleRadius;
 int sim::selected_agent_id = -1;
 
-void sim::drawEnvironment(Environment &env) {
+// initializing Time static variables
+bool sim::Time::tickerShouldStop = false;
+bool sim::Time::isTimeObjectCreated = false;
+std::thread* sim::Time::ticker = nullptr;
+uint64_t sim::Time::currentSimTick = 0;
+sim::Time* sim::Time::timeObject = nullptr;
+
+
+// TIME PRIVATE FUNCTIONS
+
+sim::Time::Time(){
+    tickerShouldStop=false;
+    ticker = new std::thread(sim::Time::updateTicksTask);
+    isTimeObjectCreated = true;
+
+}
+sim::Time::~Time(){
+    if(ticker->joinable()) ticker->join();
+    delete ticker;
+}
+
+void sim::Time::updateTicksTask(){
+    while(!tickerShouldStop){
+        currentSimTick++;
+        // TraceLog(LOG_INFO, "%ld", currentSimTick);
+        std::this_thread::sleep_for(std::chrono::microseconds((int)(1000/config::simulationSpeedFactor)));
+    }
+}
+
+// PUBLICLY FACED TIME FUNCTIONS 
+
+int sim::Time::initTime(){
+    if(isTimeObjectCreated==true){
+        TraceLog(LOG_WARNING, "Cannot create Time Object, time Object already created");
+        return -1;
+    }
+    tickerShouldStop=false;
+    timeObject = new Time();
+    TraceLog(LOG_INFO, "Time Object Created!");
+    return 0;
+}
+
+int sim::Time::finTime(){
+    if(timeObject==nullptr){
+        TraceLog(LOG_WARNING, "Cannot delete Time Object, time Object not created");   
+        return -1;
+    }
+    tickerShouldStop = true;
+    delete timeObject;
+    TraceLog(LOG_INFO, "Time Object Deleted!");
+    return 0;
+}
+
+uint64_t sim::Time::getCurrentSimTick(){
+    return currentSimTick;
+}
+
+void sim::Time::sleep(simTick timeTick){
+    uint64_t currentTick = getCurrentSimTick();
+    uint64_t goalTick = currentTick+timeTick;
+    while(goalTick > currentTick){
+        std::this_thread::yield();
+        currentTick = getCurrentSimTick();
+    }
+}
+
+
+
+
+
+void sim::drawEnvironment(env::Environment &env) {
     env.drawEnvironment();
 }
 

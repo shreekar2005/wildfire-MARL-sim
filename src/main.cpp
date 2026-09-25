@@ -14,7 +14,7 @@
 
 int main(void)
 {
-
+    
     InitWindow(sim::screenWidth, sim::screenHeight, "wildfire_marl_simulation");
     SetTargetFPS(60);
     
@@ -22,12 +22,13 @@ int main(void)
     Agent::id_to_thread.reserve(1000);
     
     Vector2 mousePos;
-
-    Environment environment;
+    
+    sim::Time::initTime();
+    
+    env::Environment environment;
 	environment.generateEnvironmentTerrain();
     while (!WindowShouldClose()) 
     {
-			float deltaTime = GetFrameTime();
         if (IsKeyPressed(KEY_C)) {
             mousePos = GetMousePosition();
             new Agent(mousePos);
@@ -82,5 +83,7 @@ int main(void)
     }
     Agent::destructAll();
     CloseWindow();
+
+    sim::Time::finTime();
     return 0;
 }
