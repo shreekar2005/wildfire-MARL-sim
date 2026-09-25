@@ -29,9 +29,8 @@ class EnvironmentCell{
 	public:
 		float flamability;
 		env::CELL_TYPE cell_type;
-		// std::chrono::steady_clock::time_point expiryBurningTime;
 		simTick expiryBurningTime;
-
+		simTick expectedCatchFireTime;
 		EnvironmentCell(env::CELL_TYPE ctype, float flamability);
 		EnvironmentCell();
 };
