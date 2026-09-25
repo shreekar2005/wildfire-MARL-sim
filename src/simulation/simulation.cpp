@@ -59,7 +59,10 @@ void sim::GUI::guiThreadTask(Environment &env){
 		//fire spawn
 		if (IsMouseButtonPressed(0) && (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))) {
             mousePos = GetMousePosition();
-			env.spawnFire(mousePos);
+			int cellCol = mousePos.x/env::blocksize;
+			int cellRow = mousePos.y/env::blocksize;
+			env.environmentGrid[cellCol][cellRow].cell_type = env::BURNING_GRASS_CELL;
+			// env.spawnFire(mousePos);
         }
 
 
@@ -79,6 +82,7 @@ void sim::GUI::guiThreadTask(Environment &env){
         }
         
         BeginDrawing();
+
             ClearBackground(RAYWHITE);
 			sim::drawEnvironment(env);
             sim::drawAgents();

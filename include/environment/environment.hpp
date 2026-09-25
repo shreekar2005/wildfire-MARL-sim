@@ -2,7 +2,6 @@
 #include "config.hpp"
 #include <queue>
 #include <raylib.h>
-#include <simulation/simulation.hpp>
 #include <thread>
 #include <unordered_map>
 #include <vector>
@@ -33,6 +32,7 @@ public:
 	env::CELL_TYPE cell_type;
 	// float timeBurned = 0;
 	std::chrono::steady_clock::time_point expiryBurningTime;
+	float timeBurned = 0;
 
 	EnvironmentCell(env::CELL_TYPE ctype, float flamability);
 	EnvironmentCell();
@@ -44,6 +44,7 @@ public:
 	std::vector<std::vector<float>> perlinNoiseGrid;
 	std::vector<std::thread *> fireThreads;
 	bool envShouldStop;
+	float TimeCounter = 0;
 
 	Environment();
 	~Environment();
@@ -52,4 +53,5 @@ public:
 	void generatePerlinNoiseMap();
 	void spawnFire(Vector2 mousePos);
 	void spreadFireTask(std::pair<int, int> fireStartCell);
+	void updateEnvironment(float dt);
 };
