@@ -7,19 +7,19 @@
 
 #include <agent/agent.hpp>
 #include <simulation/simulation.hpp>
+#include <types.hpp>
 
 
 static void agentTask(Agent* agent) {
-    auto lastTime = std::chrono::high_resolution_clock::now();
+    simTick lastTime = sim::Time::getCurrentSimTick();
     
     while(!agent->shouldStop) {
 
 			//agent movement updates 
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<float> elapsed = currentTime - lastTime;
+        simTick currentTime = sim::Time::getCurrentSimTick();
+        float dt = (float)(currentTime - lastTime)/1000.0;
+        // TraceLog(LOG_INFO, "%f", dt);
         lastTime = currentTime;
-        
-        float dt = elapsed.count();
 
         agent->updateVel(dt);
         agent->updatePos(dt);

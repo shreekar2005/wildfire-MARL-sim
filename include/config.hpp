@@ -10,7 +10,7 @@ namespace config {
     constexpr int blockSize = 10;
     constexpr int agentCircleRadius = 15;
 
-    constexpr int simulationSpeedFactor = 1;
+    constexpr int simulationSpeedFactor = 10;
 
     // agent configs
     constexpr int agentLocalPerceptionWidth = 15;
