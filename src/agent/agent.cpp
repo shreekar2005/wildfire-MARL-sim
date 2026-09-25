@@ -8,40 +8,10 @@
 #include <agent/agent.hpp>
 #include <simulation/simulation.hpp>
 
-
-static void agentTask(Agent* agent) {
-    auto lastTime = std::chrono::high_resolution_clock::now();
-    
-    while(!agent->shouldStop) {
-
-			//agent movement updates 
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<float> elapsed = currentTime - lastTime;
-        lastTime = currentTime;
-        
-        float dt = elapsed.count();
-
-        agent->updateVel(dt);
-        agent->updatePos(dt);
-
-        if (agent->pos.x < 0 || agent->pos.x > sim::screenWidth) {
-            agent->vel.x = 0;
-            agent->pos.x = (agent->pos.x < 0) ? 0.0f : (float)sim::screenWidth;
-        }
-        if (agent->pos.y < 0 || agent->pos.y > sim::screenHeight) {
-            agent->vel.y = 0;
-            agent->pos.y = (agent->pos.y < 0) ? 0.0f : (float)sim::screenHeight;
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
-}
-
 const float Agent::acc_mag = config::acc_mag;
 int Agent::numAgents = 0;
 int Agent::nextAgentId = 0;
 std::unordered_map<int, Agent*> Agent::id_to_agent;
-std::unordered_map<int, std::thread*> Agent::id_to_thread;
 
 Agent::Agent(Vector2 _pos) {
     id = nextAgentId++;
@@ -51,8 +21,6 @@ Agent::Agent(Vector2 _pos) {
     acc_dir = {0, 0};
     haveWater = false;
     numAgents++;
-    shouldStop=false;
-    id_to_thread[id] = new std::thread(agentTask, this);
     TraceLog(LOG_INFO, "Agent Created");
 }
 
@@ -63,17 +31,12 @@ Agent::Agent(const Agent& other) {
     vel = other.vel;
     acc_dir = other.acc_dir;
     haveWater = other.haveWater;
-    numAgents++; 
-    id_to_thread[id] = new std::thread(agentTask, this);
+    numAgents++;
 }
 
 Agent::~Agent() {
     numAgents--;
     id_to_agent.erase(this->id);
-    shouldStop=true;
-    id_to_thread[this->id]->join();
-    delete id_to_thread[this->id];
-    id_to_thread.erase(this->id);
     TraceLog(LOG_INFO, "Agent Deleted");
 }
 
@@ -91,6 +54,24 @@ void Agent::updatePos(float time) {
     float damping = std::pow(0.95f, time * 60.0f);
     vel.x *= damping;
     vel.y *= damping;
+}
+
+
+void Agent::update(float time){
+    for(auto &it : Agent::id_to_agent) {
+        Agent* agent= it.second;
+        agent->updatePos(time);
+        agent->updateVel(time);
+
+        if (agent->pos.x < 0 || agent->pos.x > sim::screenWidth) {
+            agent->vel.x = 0;
+            agent->pos.x = (agent->pos.x < 0) ? 0.0f : (float)sim::screenWidth;
+        }
+        if (agent->pos.y < 0 || agent->pos.y > sim::screenHeight) {
+            agent->vel.y = 0;
+            agent->pos.y = (agent->pos.y < 0) ? 0.0f : (float)sim::screenHeight;
+        }
+    }
 }
 
 void Agent::destructAll() {

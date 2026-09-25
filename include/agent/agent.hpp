@@ -14,13 +14,11 @@ class Agent {
         Vector2 vel; // agent's current velocity (vx,vy)
         Vector2 pos; // agent's current position (x,y)
         Vector2 acc_dir; // used for only acceleration direction (it will be normalized when to update velocity)
-        bool shouldStop; // agent destructor is called or not (used for terminating agent's thread)
         
         static int numAgents; // total number of agents
         const static float acc_mag; // constant
         static int nextAgentId; // used for assigning agent id
         static std::unordered_map<int, Agent*> id_to_agent; // map from agent id to agent object pointer
-        static std::unordered_map<int, std::thread*> id_to_thread; // map from agent id to agent thread pointer
         
         /// @brief agent constructor
         /// @param _pos initial position on creating agent
@@ -40,7 +38,9 @@ class Agent {
         void updatePos(float time);
 		void throwWater();
 
+        static void update(float time);
 
         // Will delete all agents and their currusponding threads
         static void destructAll();
+
 };

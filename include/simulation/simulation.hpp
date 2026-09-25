@@ -2,6 +2,7 @@
 
 #include <raylib.h>
 #include <environment/environment.hpp>
+#include <thread>
 namespace sim{
 
 extern const int screenWidth;
@@ -17,5 +18,14 @@ extern const int blockSize;
 //draw environment based on terrain functions
 void drawEnvironment(Environment &env);
 void drawAgents();
+class GUI{
+    private:
+        static void guiThreadTask(Environment &env);
+        std::thread * guiThread;
+    public:
+        GUI(Environment &env);
+        ~GUI();
+
+};
 
 }
