@@ -215,82 +215,47 @@ void Environment::updateEnvironment(float dt) {
   // by copy
   auto CurrentEnvGrid = environmentGrid;
 
-  std::vector<std::pair<int, int>> directions = {
-      {-1, 0}, {1, 0}, {0, 1}, {0, -1}};
-
-
   //check for burned cell time expiry
   for (int cellCol = 0; cellCol < env::gridWidth; cellCol++) {
     for (int cellRow = 0; cellRow < env::gridHeight; cellRow++) {
-
       if(CurrentEnvGrid [cellCol][cellRow].cell_type != env::BURNING_GRASS_CELL)continue;
-		environmentGrid[cellCol][cellRow].timeBurned += dt;
-
-	  if(environmentGrid[cellCol][cellRow].timeBurned >= config::GrassBurnTime){
-			  environmentGrid[cellCol][cellRow].cell_type = env::BURNED_GRASS_CELL;
-	  }
-	}
+      environmentGrid[cellCol][cellRow].timeBurned += dt;
+      if(environmentGrid[cellCol][cellRow].timeBurned >= config::GrassBurnOutTimeSec){
+        environmentGrid[cellCol][cellRow].cell_type = env::BURNED_GRASS_CELL;
+      }
+    }
   }
-
+  
+  std::vector<std::pair<int, int>> directions = {{-1, 0}, {1, 0}, {0, 1}, {0, -1}};
 
   TimeCounter += dt;
-  
-  while(TimeCounter >= config::updateTime){
+  // let x = time between 2 iterations
+  // x = 1/n, if n iterations in 1 sec
+  // assuming for 1 cell it take k expected iterations
+  // then we want expectedCatchFireTimeSec have k iterations
+  // therefore 1 sec should have k/expectedCatchFireTimeSec iterations
+  // therefore time between 2 iterations will be "expectedCatchFireTimeSec/k"
+  // assuming k = 1/(alpha^2) = 1/(0.7^2) --- taking avg alpha = 0.7
+  // x = expectedCatchFireTimeSec * (0.49)
+  float x = config::expectedCatchFireTimeSec * (0.49) * 2; //keeping *2 because generally 1 cell is surrounded by 2 fire cells
+  while(TimeCounter >= x){
+    for (int cellCol = 0; cellCol < env::gridWidth; cellCol++) {
+      for (int cellRow = 0; cellRow < env::gridHeight; cellRow++) {
+        if(CurrentEnvGrid [cellCol][cellRow].cell_type != env::BURNING_GRASS_CELL) continue;
 
-  //one array pass
-  for (int cellCol = 0; cellCol < env::gridWidth; cellCol++) {
-    for (int cellRow = 0; cellRow < env::gridHeight; cellRow++) {
-
-
-
-      if(CurrentEnvGrid [cellCol][cellRow].cell_type != env::BURNING_GRASS_CELL)continue;
-
-	  
-	  
-      bool isFireLeaf = false;
-      for (auto dir : directions) {
-
-        if (cellCol + dir.first < 0)
-          continue;
-        if (cellCol + dir.first >= env::gridWidth)
-          continue;
-        if (cellRow + dir.second >= env::gridHeight)
-          continue;
-        if (cellRow + dir.second < 0)
-          continue;
-
-        if (CurrentEnvGrid [cellCol + dir.first][cellRow + dir.second]
-                .cell_type == env::GRASS_CELL) {
-          isFireLeaf = true;
-          break;
-		}
-	  }
-          if (isFireLeaf) {
-            // generate random number
-            float randomNumForFireSpread = 1.0f * rand() / RAND_MAX;
-	for (auto dir : directions) {
-
-              if (cellCol + dir.first < 0)
-                continue;
-              if (cellCol + dir.first >= env::gridWidth)
-                continue;
-              if (cellRow + dir.second >= env::gridHeight)
-                continue;
-              if (cellRow + dir.second < 0)
-                continue;
-
-              if ((CurrentEnvGrid [cellCol + dir.first][cellRow + dir.second]
-                       .flamability) >= randomNumForFireSpread &&
-                  CurrentEnvGrid [cellCol + dir.first][cellRow + dir.second]
-                          .cell_type == env::GRASS_CELL) {
-                // mark this cell as Burning
-                environmentGrid[cellCol + dir.first][cellRow + dir.second]
-                    .cell_type = env::BURNING_GRASS_CELL;
-              }
-            }
+        float randomNumForFireSpread = 1.0f * rand() / RAND_MAX;
+        for (auto dir : directions) {
+          if (cellCol + dir.first < 0) continue;
+          if (cellCol + dir.first >= env::gridWidth) continue;
+          if (cellRow + dir.second >= env::gridHeight) continue;
+          if (cellRow + dir.second < 0) continue;
+          if(CurrentEnvGrid [cellCol + dir.first][cellRow + dir.second].cell_type != env::GRASS_CELL) continue;
+          if ((CurrentEnvGrid [cellCol + dir.first][cellRow + dir.second].flamability) >= randomNumForFireSpread) {
+                environmentGrid[cellCol + dir.first][cellRow + dir.second].cell_type = env::BURNING_GRASS_CELL;
           }
         }
       }
-		TimeCounter -= config::updateTime;
+    }
+    TimeCounter -= x;
   }
     }

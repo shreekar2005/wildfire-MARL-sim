@@ -21,22 +21,22 @@ int main(void)
     Environment env;
 	env.generateEnvironmentTerrain();
 
-
 	// GUI THREAD
     sim::GUI guiInstance(env); // can only create one instance
-
 
     auto lastTime = std::chrono::high_resolution_clock::now();
     while(true)
     {
-
         auto currentTime = std::chrono::high_resolution_clock::now();
         std::chrono::duration<float> elapsed = currentTime - lastTime;
         lastTime = currentTime;
-        float dt = elapsed.count();
+        float dt = elapsed.count(); // dt will be in second
+        // TraceLog(LOG_INFO, "%f", dt);
+        dt = dt*config::simSpeedFactor;
 		env.updateEnvironment(dt);
         Agent::update(dt);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+        std::this_thread::sleep_for(std::chrono::microseconds(1));
     }
     return 0;
 }
