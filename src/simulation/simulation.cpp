@@ -4,8 +4,6 @@
 #include <algorithm>
 
 #include <simulation/simulation.hpp>
-#include <agent/agent.hpp>
-#include <environment/environment.hpp>
 #include <raylib.h>
 #include <raymath.h>
 #include <functional> // Required for std::ref
@@ -13,11 +11,11 @@
 const int sim::screenWidth = config::screenWidth;
 const int sim::screenHeight = config::screenHeight;
 
-const int sim::agentCircleRadius=config::agentCircleRadius;
+const int sim::agentCircleRadius=15;
 int sim::selected_agent_id = -1;
 
-sim::GUI::GUI(Environment &env){
-    guiThread = new std::thread(guiThreadTask, std::ref(env));
+sim::GUI::GUI(Environment &env, Agents &agents){
+    guiThread = new std::thread(guiThreadTask, std::ref(env), std::ref(agents));
     TraceLog(LOG_INFO, "GUI Instance Created!!!");
 }
 
@@ -27,7 +25,7 @@ sim::GUI::~GUI(){
     TraceLog(LOG_INFO, "GUI Instance Deleted!!!");
 }
 
-void sim::GUI::guiThreadTask(Environment &env){
+void sim::GUI::guiThreadTask(Environment &env, Agents &agents){
     InitWindow(sim::screenWidth, sim::screenHeight, "wildfire_marl_simulation");
     SetTargetFPS(60);
     
@@ -61,8 +59,7 @@ void sim::GUI::guiThreadTask(Environment &env){
             mousePos = GetMousePosition();
 			int cellCol = mousePos.x/env::blocksize;
 			int cellRow = mousePos.y/env::blocksize;
-			env.environmentGrid[cellCol][cellRow].cell_type = env::BURNING_GRASS_CELL;
-			// env.spawnFire(mousePos);
+            env.setFire(cellCol, cellRow);
         }
 
 
@@ -85,7 +82,7 @@ void sim::GUI::guiThreadTask(Environment &env){
 
             ClearBackground(RAYWHITE);
 			sim::drawEnvironment(env);
-            sim::drawAgents();
+            sim::drawAgents(agents);
             // Draw FPS in the box in top
             DrawRectangle(0, 0, 100, 30, SKYBLUE);
             DrawFPS(10, 10);
@@ -99,7 +96,7 @@ void sim::drawEnvironment(Environment &env) {
     env.drawEnvironment();
 }
 
-void sim::drawAgents() {
+void sim::drawAgents(Agents &agents) {
     float droneImgScale = 0.08f;
     static Texture2D droneTexture = LoadTexture("assets/drone_white.png");
     // static Texture2D droneTexture_BLACK = LoadTexture("assets/drone_black.png");

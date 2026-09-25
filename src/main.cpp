@@ -19,10 +19,10 @@ int main(void)
     Agent::id_to_agent.reserve(1000);
 
     Environment env;
-	env.generateEnvironmentTerrain();
+    Agents agents;
 
 	// GUI THREAD
-    sim::GUI guiInstance(env); // can only create one instance
+    sim::GUI guiInstance(env, agents);// can only create one instance
 
     auto lastTime = std::chrono::high_resolution_clock::now();
     while(true)
@@ -34,7 +34,7 @@ int main(void)
         // TraceLog(LOG_INFO, "%f", dt);
         dt = dt*config::simSpeedFactor;
 		env.updateEnvironment(dt);
-        Agent::update(dt);
+        Agent::updateState(dt);
 
         std::this_thread::sleep_for(std::chrono::microseconds(1));
     }

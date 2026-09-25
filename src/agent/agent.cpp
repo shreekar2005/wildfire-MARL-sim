@@ -9,7 +9,6 @@
 #include <simulation/simulation.hpp>
 
 const float Agent::acc_mag = config::acc_mag;
-int Agent::numAgents = 0;
 int Agent::nextAgentId = 0;
 std::unordered_map<int, Agent*> Agent::id_to_agent;
 
@@ -20,7 +19,6 @@ Agent::Agent(Vector2 _pos) {
     vel = {0, 0};
     acc_dir = {0, 0};
     haveWater = false;
-    numAgents++;
     TraceLog(LOG_INFO, "Agent Created");
 }
 
@@ -31,11 +29,9 @@ Agent::Agent(const Agent& other) {
     vel = other.vel;
     acc_dir = other.acc_dir;
     haveWater = other.haveWater;
-    numAgents++;
 }
 
 Agent::~Agent() {
-    numAgents--;
     id_to_agent.erase(this->id);
     TraceLog(LOG_INFO, "Agent Deleted");
 }
@@ -57,7 +53,7 @@ void Agent::updatePos(float time) {
 }
 
 
-void Agent::update(float time){
+void Agent::updateState(float time){
     for(auto &it : Agent::id_to_agent) {
         Agent* agent= it.second;
         agent->updatePos(time);

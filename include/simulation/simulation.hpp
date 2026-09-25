@@ -2,6 +2,7 @@
 
 #include <raylib.h>
 #include <environment/environment.hpp>
+#include <agent/agent.hpp>
 #include <thread>
 namespace sim{
 
@@ -17,13 +18,13 @@ extern const int blockSize;
 
 //draw environment based on terrain functions
 void drawEnvironment(Environment &env);
-void drawAgents();
+void drawAgents(Agents &agents);
 class GUI{
     private:
-        static void guiThreadTask(Environment &env);
+        static void guiThreadTask(Environment &env, Agents &agents);
         std::thread * guiThread;
     public:
-        GUI(Environment &env);
+        GUI(Environment &env, Agents &agents);
         ~GUI();
 
 };

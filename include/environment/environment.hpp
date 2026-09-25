@@ -30,28 +30,26 @@ class EnvironmentCell
 public:
 	float flamability;
 	env::CELL_TYPE cell_type;
-	// float timeBurned = 0;
-	std::chrono::steady_clock::time_point expiryBurningTime;
-	float timeBurned = 0;
+	float burningTimeRemaining;
 
 	EnvironmentCell(env::CELL_TYPE ctype, float flamability);
 	EnvironmentCell();
 };
 class Environment
 {
-public:
-	std::vector<std::vector<EnvironmentCell>> environmentGrid;
-	std::vector<std::vector<float>> perlinNoiseGrid;
-	std::vector<std::thread *> fireThreads;
-	bool envShouldStop;
-	float TimeCounter = 0;
+	private:
+		void generatePerlinNoiseMap();
+		void generateEnvironmentTerrain();
+		std::vector<std::vector<EnvironmentCell>> environmentGrid;
+		std::vector<std::vector<float>> perlinNoiseGrid;
+		float tempTimeCounter = 0;
 
-	Environment();
-	~Environment();
-	void generateEnvironmentTerrain();
-	void drawEnvironment();
-	void generatePerlinNoiseMap();
-	void spawnFire(Vector2 mousePos);
-	void spreadFireTask(std::pair<int, int> fireStartCell);
-	void updateEnvironment(float dt);
+	public:
+
+		Environment();
+		~Environment();
+
+		void drawEnvironment();
+		void setFire(int cellCol, int cellRow);
+		void updateEnvironment(float dt);
 };
