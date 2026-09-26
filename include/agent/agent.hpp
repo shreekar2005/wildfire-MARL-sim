@@ -4,50 +4,63 @@
 #include <thread>
 #include <unordered_map>
 #include <config.hpp>
+#include <environment/environment.hpp>
 
 class Agent {
     private:
+        Vector2 pos; // agent's current position (float x,float y)
+        Vector2 dir; // used for only acceleration direction (it will be normalized when to update velocity)
         Vector2 vel; // agent's current velocity (vx,vy)
-        bool haveWater; // does agent have water or not
-        int agentLocalPerceptionWidth = config::agentLocalPerceptionWidth; // agent will be observing 15x15 cells for its local perception 
-        const static float acc_mag; // constant
-        static int nextAgentId; // used for assigning agent id
-
-        /// @brief update the velocity assuming constant acceleration for given time
-        /// @param time time for which we have to change velocity
-        void updateVel(float time);
-
-        /// @brief update the position of agent assuming constant velocity. velocity will decay after change in position
-        /// @param time time for which we have to change position
-        void updatePos(float time);
+        bool doesHaveWater; // does agent have water or not
 
     public:
-        int id; // agent id
-        Vector2 pos; // agent's current position (x,y)
-        Vector2 acc_dir; // used for only acceleration direction (it will be normalized when to update velocity)
+        void updateVel(const float &time, const float &accMag);
+        void updatePos(const float &time);
         
-        static std::unordered_map<int, Agent*> id_to_agent; // map from agent id to agent object pointer
-        
-        /// @brief agent constructor
-        /// @param _pos initial position on creating agent
-        Agent(Vector2 _pos = {10, 10});
-        
-        // copy constructor
-        Agent(const Agent& other);
-        
+        Agent(Vector2 pos = {10, 10});
         ~Agent();
 
-		void throwWater(); // dummy
-        void pickWater(); // dummy
+        Vector2 getDir();
+        Vector2 getVel();
+        Vector2 getPos();
 
-        static void updateState(float time);
-
-        // Will delete all agents and their currusponding threads
-        static void destructAll();
+        void setDir(const Vector2 &dir);
+        // void throwWater(); // dummy
+        // void pickWater(); // dummy
 
 };
 
 
 class Agents{
-    // TO DO (some place code has been updated accordingly, please complete this class as early as possible)
+    private:
+        std::unordered_map <int, Agent*> agentsMap;
+        int nextAgentId=0;
+        int numAgents=0;
+        
+        int agentLocalPerceptionWidth = config::agentLocalPerceptionWidth;
+        float agentAccMag = config::acc_mag;
+        float agentCircleRadius = 15;
+
+        Environment* env;
+
+    public:
+        Agents(Environment* env);
+        Agents(Environment* env, int numAgents); // will also spawn random numAgents agents
+
+        ~Agents();
+
+        int createAgent(Vector2 pos); // returns id of created agent
+        void deleteAgent(int agentID);
+        void deleteAllAgents();
+
+        void updateState(const float &time);
+        void setAgentDir(const int &agentID, const Vector2 &dir);
+
+        Vector2 getAgentDir(const int &agentID);
+        Vector2 getAgentVel(const int &agentID);
+        Vector2 getAgentPos(const int &agentID);
+        int getAgentIdByPos(const Vector2 &pos);
+
+        void draw();
+
 };

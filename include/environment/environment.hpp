@@ -19,11 +19,6 @@ namespace env
 		BURNING_GRASS_CELL
 	};
 
-	const int gridWidth = config::screenWidth / config::blockSize;
-	const int gridHeight = config::screenHeight / config::blockSize;
-	const int blocksize = config::blockSize;
-	const float TerrainWaterThreshold = config::TerrainWaterThreshold; // less than 0.25 matlab water
-
 };
 class EnvironmentCell
 {
@@ -38,6 +33,12 @@ public:
 class Environment
 {
 	private:
+
+		int gridWidth = config::screenWidth / config::blockSize;
+		int gridHeight = config::screenHeight / config::blockSize;
+		int blockSize = config::blockSize;
+		float TerrainWaterThreshold = config::TerrainWaterThreshold; // less than 0.25 matlab water
+
 		void generatePerlinNoiseMap();
 		void generateEnvironmentTerrain();
 		std::vector<std::vector<EnvironmentCell>> environmentGrid;
@@ -47,9 +48,14 @@ class Environment
 	public:
 
 		Environment();
+		Environment(const int &blockSize, const float &terrainWaterFraction);
 		~Environment();
 
-		void drawEnvironment();
+		void draw();
 		void setFire(int cellCol, int cellRow);
-		void updateEnvironment(float dt);
+		void updateState(float dt);
+
+		const int getBlockSize();
+		const int getGridWidth();
+		const int getGridHeight();
 };

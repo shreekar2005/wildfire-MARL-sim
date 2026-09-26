@@ -16,10 +16,10 @@
 
 int main(void)
 {
-    Agent::id_to_agent.reserve(1000);
-
-    Environment env;
-    Agents agents;
+    // Environment env; // default
+    Environment env(10, 0.3); // block size = 10 and water fraction = 0.3
+    // Agents agents(env); // default 
+    Agents agents(&env, 5); // 5 agents will be spawned
 
 	// GUI THREAD
     sim::GUI guiInstance(env, agents);// can only create one instance
@@ -33,8 +33,8 @@ int main(void)
         float dt = elapsed.count(); // dt will be in second
         // TraceLog(LOG_INFO, "%f", dt);
         dt = dt*config::simSpeedFactor;
-		env.updateEnvironment(dt);
-        Agent::updateState(dt);
+		env.updateState(dt);
+        agents.updateState(dt);
 
         std::this_thread::sleep_for(std::chrono::microseconds(1));
     }

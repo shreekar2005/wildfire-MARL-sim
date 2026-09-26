@@ -11,7 +11,6 @@
 const int sim::screenWidth = config::screenWidth;
 const int sim::screenHeight = config::screenHeight;
 
-const int sim::agentCircleRadius=15;
 int sim::selected_agent_id = -1;
 
 sim::GUI::GUI(Environment &env, Agents &agents){
@@ -33,103 +32,44 @@ void sim::GUI::guiThreadTask(Environment &env, Agents &agents){
 
     while (!WindowShouldClose()) 
     {
+        // create Agent
         if (IsKeyPressed(KEY_C)) {
             mousePos = GetMousePosition();
-            new Agent(mousePos);
+            agents.createAgent(mousePos);
         }
-
-		//agent finding logic
         if (IsMouseButtonPressed(0)) {
             mousePos = GetMousePosition();
-            bool found = false;
-            for(auto &it : Agent::id_to_agent) {
-                int id = it.first;
-                Agent* agent= it.second;
-                float distAgentMouse = Vector2Distance(mousePos, agent->pos);
-                if (distAgentMouse <= sim::agentCircleRadius) {
-                    sim::selected_agent_id = id;
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) sim::selected_agent_id = -1;
+            sim::selected_agent_id = agents.getAgentIdByPos(mousePos);
         }
-		//fire spawn
+		// spawn fire
 		if (IsMouseButtonPressed(0) && (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))) {
             mousePos = GetMousePosition();
-			int cellCol = mousePos.x/env::blocksize;
-			int cellRow = mousePos.y/env::blocksize;
+			int cellCol = mousePos.x/env.getBlockSize();
+			int cellRow = mousePos.y/env.getBlockSize();
             env.setFire(cellCol, cellRow);
         }
 
 
-		// agent movement logic
-
+		// set agent movement direction
         if (sim::selected_agent_id != -1) {
-            auto it = Agent::id_to_agent.find(sim::selected_agent_id);
-            if (it != Agent::id_to_agent.end()) {
-                Agent* agent = it->second;
-                if (IsKeyDown(KEY_W) && !IsKeyDown(KEY_S)) agent->acc_dir.y = -1;
-                else if (IsKeyDown(KEY_S) && !IsKeyDown(KEY_W)) agent->acc_dir.y = 1;
-                else agent->acc_dir.y = 0;
-                if (IsKeyDown(KEY_A) && !IsKeyDown(KEY_D)) agent->acc_dir.x = -1;
-                else if (IsKeyDown(KEY_D) && !IsKeyDown(KEY_A)) agent->acc_dir.x = 1;
-                else agent->acc_dir.x = 0;
-            }
+            Vector2 wasdDir;
+            if (IsKeyDown(KEY_W) && !IsKeyDown(KEY_S)) wasdDir.y = -1;
+            else if (IsKeyDown(KEY_S) && !IsKeyDown(KEY_W)) wasdDir.y = 1;
+            else wasdDir.y = 0;
+            if (IsKeyDown(KEY_A) && !IsKeyDown(KEY_D)) wasdDir.x = -1;
+            else if (IsKeyDown(KEY_D) && !IsKeyDown(KEY_A)) wasdDir.x = 1;
+            else wasdDir.x = 0;
+            agents.setAgentDir(sim::selected_agent_id, wasdDir);
         }
         
         BeginDrawing();
-
             ClearBackground(RAYWHITE);
-			sim::drawEnvironment(env);
-            sim::drawAgents(agents);
+			env.draw();
+            agents.draw();
             // Draw FPS in the box in top
             DrawRectangle(0, 0, 100, 30, SKYBLUE);
             DrawFPS(10, 10);
         EndDrawing();
     }
-    Agent::destructAll();
     CloseWindow();
-}
-
-void sim::drawEnvironment(Environment &env) {
-    env.drawEnvironment();
-}
-
-void sim::drawAgents(Agents &agents) {
-    float droneImgScale = 0.08f;
-    static Texture2D droneTexture = LoadTexture("assets/drone_white.png");
-    // static Texture2D droneTexture_BLACK = LoadTexture("assets/drone_black.png");
-    // static Texture2D droneTexture_BLUE = LoadTexture("assets/drone_blue.png");
-    static Texture2D selectedDroneTexture = LoadTexture("assets/drone_red.png");
-
-    Vector2 droneTexturePos;
-
-    for(auto &it : Agent::id_to_agent) {
-        int id = it.first;
-        Agent* agent= it.second;
-        float dt = GetFrameTime();
-        
-        // DrawCircleLines(agent->pos.x, agent->pos.y, sim::agentCircleRadius, WHITE);
-       // DrawCircleLinesEx(agent->pos, sim::agentCircleRadius, 0.3f, WHITE);
-
-		// adding this instead of above for legacy raylib support
-		DrawCircleLines(agent->pos.x, agent->pos.y, sim::agentCircleRadius, WHITE);
-        if (agent->id == sim::selected_agent_id) {
-            // DrawCircleV(agent->pos, sim::agentCircleRadius, sim::selectedAgentColor);
-            droneTexturePos.x = agent->pos.x - (selectedDroneTexture.width*droneImgScale/2);
-            droneTexturePos.y = agent->pos.y - (selectedDroneTexture.height*droneImgScale/2);
-            DrawTextureEx(selectedDroneTexture, droneTexturePos, 0.0f, droneImgScale, WHITE);
-
-        } else {
-            // DrawCircleV(agent->pos, sim::agentCircleRadius, sim::agentColor);
-            droneTexturePos.x = agent->pos.x - (droneTexture.width*droneImgScale/2);
-            droneTexturePos.y = agent->pos.y - (droneTexture.height*droneImgScale/2);
-            DrawTextureEx(droneTexture, droneTexturePos, 0.0f, droneImgScale, WHITE);
-
-        }
-
-        
-        
-    }
 }
