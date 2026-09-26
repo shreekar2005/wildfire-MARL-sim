@@ -16,10 +16,10 @@
 
 int main(void)
 {
-    // Environment env; // default
-    Environment env(10, 0.3); // block size = 10 and water fraction = 0.3
+    // Environment env(config::envSeed); // default
+    Environment env(config::envBlockSize, config::waterGrassFraction, config::envSeed);
     // Agents agents(env); // default 
-    Agents agents(&env, 5); // 5 agents will be spawned
+    Agents agents(&env, config::numAgentsOnStart);
 
 	// GUI THREAD
     sim::GUI guiInstance(env, agents);// can only create one instance

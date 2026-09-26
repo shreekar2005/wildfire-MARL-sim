@@ -38,7 +38,7 @@ class Agents{
         int numAgents=0;
         
         int agentLocalPerceptionWidth = config::agentLocalPerceptionWidth;
-        float agentAccMag = config::acc_mag;
+        float agentAccMag = config::agentAccMag;
         float agentCircleRadius = 15;
 
         Environment* env;

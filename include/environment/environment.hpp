@@ -37,18 +37,18 @@ class Environment
 		int gridWidth = config::screenWidth / config::blockSize;
 		int gridHeight = config::screenHeight / config::blockSize;
 		int blockSize = config::blockSize;
-		float TerrainWaterThreshold = config::TerrainWaterThreshold; // less than 0.25 matlab water
+		float waterGrassFraction = config::waterGrassFraction; // less than 0.25 matlab water
 
-		void generatePerlinNoiseMap();
-		void generateEnvironmentTerrain();
+		void generatePerlinNoiseMap(uint envSeed);
+		void generateEnvironmentTerrain(uint envSeed);
 		std::vector<std::vector<EnvironmentCell>> environmentGrid;
 		std::vector<std::vector<float>> perlinNoiseGrid;
 		float tempTimeCounter = 0;
 
 	public:
 
-		Environment();
-		Environment(const int &blockSize, const float &terrainWaterFraction);
+		Environment(const uint &envSeed);
+		Environment(const int &blockSize, const float &terrainWaterFraction, const uint &envSeed);
 		~Environment();
 
 		void draw();

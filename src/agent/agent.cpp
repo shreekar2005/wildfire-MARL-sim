@@ -46,7 +46,7 @@ void Agent::setDir(const Vector2 &dir){this->dir = Vector2Normalize(dir);}
 Agents::Agents(Environment* env){
     this->env=env;
     this->agentsMap.reserve(1000);
-    this->agentAccMag=config::acc_mag;
+    this->agentAccMag=config::agentAccMag;
     this->nextAgentId=0;
     this->numAgents=0;
 }
@@ -54,7 +54,7 @@ Agents::Agents(Environment* env){
 Agents::Agents(Environment* env, int numAgents){
     this->env=env;
     this->agentsMap.reserve(1000);
-    this->agentAccMag=config::acc_mag;
+    this->agentAccMag=config::agentAccMag;
     this->nextAgentId=0;
     this->numAgents=0;
     for(int i=0; i<numAgents; i++){
